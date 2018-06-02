@@ -177,6 +177,8 @@ import Data.Typeable
 import Data.Ratio
 import Data.Bifunctor
 import Data.Maybe
+import Data.Ord
+import Data.Word8
 import Data.Matrix hiding ((!))
 import Test.QuickCheck hiding ((><),choose)
 import qualified Test.QuickCheck as QuickCheck
@@ -384,14 +386,7 @@ data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a)
 \end{subfigure}
 \begin{subfigure}{0.7\textwidth}
 \begin{verbatim}
-Block
- (Cell 0 4 4) (Block
-  (Cell 0 2 2) (Cell 0 2 2) (Cell 1 2 2) (Block
-   (Cell 1 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1)))
- (Cell 1 4 4)
- (Block
-  (Cell 1 2 2) (Cell 0 2 2) (Cell 0 2 2) (Block
-   (Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 1 1 1)))
+Block (Cell 0 4 4) (Block (Cell 0 2 2) (Cell 0 2 2) (Cell 1 2 2) (Block (Cell 1 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1))) (Cell 1 4 4) (Block (Cell 1 2 2) (Cell 0 2 2) (Cell 0 2 2) (Block (Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 1 1 1)))
 \end{verbatim}
 \caption{Quadtree de exemplo |qt|.}
 \label{fig:qt}
@@ -536,7 +531,7 @@ Esta questão aborda operações de processamento de imagens utilizando quadtree
     Tente produzir imagens similares às Figuras~\ref{fig:person90}, \ref{fig:personx2} e \ref{fig:personinv}:
 %if False
 \begin{code}
-rotateQTree ::(Eq a) => QTree a -> QTree a
+rotateQTree :: QTree a -> QTree a
 scaleQTree :: Int -> QTree a -> QTree a
 invertQTree :: QTree PixelRGBA8 -> QTree PixelRGBA8
 prop2c :: QTree Int -> Bool
@@ -1013,10 +1008,10 @@ recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, 
 recQTree f g = baseQTree id f g  
 
 cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
-cataQTree a = a . (recQTree (cataQTree a)) . outQTree
+cataQTree f = f . (recQTree (cataQTree f)) . outQTree
 
 anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
-anaQTree f = inQTree .(recQTree (anaQTree f)) . f
+anaQTree g = inQTree .(recQTree (anaQTree g)) . g
 
 hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
 hyloQTree a c = cataQTree a . anaQTree c
@@ -1025,21 +1020,51 @@ hyloQTree a c = cataQTree a . anaQTree c
 instance Functor QTree where
     fmap f = cataQTree (inQTree . baseQTree f id)
 
-invertA :: [PixelRGBA8] -> [PixelRGBA8]
-invertA [] = []
-invertA l = map(\(PixelRGBA8 x y z w) -> (PixelRGBA8 (255-x)(255-y)(255-z)(255-w))) l
+--funções auxiliares
+--1--
+myfunction:: (a,(a,(a,a))) -> (a,(a,(a,a)))
+myfunction (x,(y,(z,w))) = (z,(x,(w,y))) 
 
-scaleAux :: Int ->(a,(Int,Int)) ->(a,(Int,Int))
-scaleAux n (y,(a,b)) = (y,(n*a,n*b)) 
+rotateAux :: Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (a, (a, (a, a)))
+rotateAux =  id -|- myfunction
+--2--
+baseQTreeScale :: (d2 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (a1, b) (d1, (d1, (d1, d1)))
+baseQTreeScale f g = (id><f) -|- (g><(g><(g><g)))
 
+scaleAux :: Int -> (Int,Int) -> (Int,Int)
+scaleAux n (a,b) = (n*a,n*b) 
+--3--
+changeColor :: PixelRGBA8 -> PixelRGBA8
+changeColor (PixelRGBA8 x y z w) = PixelRGBA8 (255-x)(255-y)(255-z)(255-w)
+--4-- 
+celuralize :: QTree a -> a
+celuralize (Cell x y z) = x
+celuralize (Block o b c d) = celuralize o   
 
---2 testes corretos(perguntar ao professor!!!)
-rotateQTree = bm2qt.transpose.fromLists.reverse.toLists.qt2bm where transpose=Data.Matrix.transpose   
-scaleQTree n q = outQTree(either ) 
+cutQTree :: QTree a -> QTree a  
+cutQTree (Cell x y z) = (Cell x y z)
+cutQTree q = Cell (celuralize q) (p1$sizeQTree q) (p2$sizeQTree q)  
+
+compressQTreeAux :: Int -> QTree a -> QTree a
+compressQTreeAux n q = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))q 
+                                        else cutQTree q
+--5--
+outlineAux :: (a->Bool) -> QTree a -> QTree Bool
+outlineAux f = fmap f
+-- perguntas --
 --passou nos testes todos
-invertQTree = bm2qt .fromLists . (fmap$invertA) . toLists . qt2bm -- passou nos testes todos
-compressQTree = undefined
-outlineQTree = undefined
+rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree  
+--passou nos testes todos 
+scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)--fmap adaptado para esta questão
+--passou nos testes todos
+invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
+--passou nos testes mas não da como ta no trabalho
+compressQTree n q = compressQTreeAux ((depthQTree q) - n) q 
+
+outlineQTree f = if (f) then (qt2bm.(cataQTree (inQTree . baseQTree f id)). 
+                        else (qt2bm.(cataQTree (inQTree . recQTree ))
+
+
 \end{code}
 
 \subsection*{Problema 3}
@@ -1316,9 +1341,9 @@ invertBMP from to = withBMP from to invertbm
 
 depthQTree :: QTree a -> Int
 depthQTree = cataQTree (either (const 0) f)
-    where f (a,(b,(c,d))) = maximum [a,b,c,d]
+    where f (a,(b,(c,d))) = 1 + maximum[a, b, c, d]
 
-compressbm :: Eq a => Int -> Matrix a -> Matrix a
+compressbm :: (Eq a) => Int -> Matrix a -> Matrix a
 compressbm n = qt2bm . compressQTree n . bm2qt
 
 compressBMP :: Int -> FilePath -> FilePath -> IO ()
