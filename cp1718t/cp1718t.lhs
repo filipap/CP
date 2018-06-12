@@ -970,12 +970,13 @@ outras funções auxiliares que sejam necessárias.
 \subsection*{Problema 1}
 
 \begin{code}
-inBlockchain = undefined
-outBlockchain = undefined
-recBlockchain = undefined
-cataBlockchain = undefined
-anaBlockchain = undefined
-hyloBlockchain = undefined
+inBlockchain = either (Bc) (Bcs)
+outBlockchain (Bc b) = i1(b)
+outBlockchain (Bcs bs) = i2(bs)
+recBlockchain f = id -|- id><(f)
+cataBlockchain g = g . (recBlockchain (cataBlockchain g)) . outBlockchain
+anaBlockchain g = inBlockchain . (recBlockchain(anaBlockchain g)) . g
+hyloBlockchain c a = cataBlockchain c . anaBlockchain a
 
 allTransactions = undefined
 ledger = undefined
