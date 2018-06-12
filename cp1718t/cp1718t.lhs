@@ -105,13 +105,13 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 99 (preencher)
+\textbf{Grupo} nr. & 67
 \\\hline
-a11111 & Nome1 (preencher)
+a81451 & Alexandre Rodrigues
 \\
-a22222 & Nome2 (preencher)
+a82145 & Filipa Parente
 \\
-a33333 & Nome3 (preencher)
+a81403 & Pedro Ferreira
 \end{tabular}
 \end{center}
 
