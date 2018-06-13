@@ -1044,8 +1044,7 @@ celuralize (Cell x y z) = x
 celuralize (Block o b c d) = celuralize o
 
 cutQTree :: QTree a -> QTree a
-cutQTree (Cell x y z) = (Cell x y z)
-cutQTree q = Cell (celuralize q) (p1$sizeQTree q) (p2$sizeQTree q)
+cutQTree q = Cell (celuralize q) (p1 $ sizeQTree q) (p2 $ sizeQTree q)
 
 compressQTreeAux :: Int -> QTree a -> QTree a
 compressQTreeAux n q = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))q
@@ -1062,9 +1061,9 @@ scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)--fmap adapta
 invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 --passou nos testes mas não da como ta no trabalho
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
-
---outlineQTree f = if (f) then (qt2bm.(cataQTree (inQTree . baseQTree f id)) else (qt2bm.(cataQTree (inQTree . recQTree ))
-outlineQTree = undefined
+--esta mal--
+outlineQTree f = qt2bm . (outlineAux f)
+--outlineQTree = undefined
 
 
 \end{code}
@@ -1129,9 +1128,11 @@ drawPTree = undefined
 \subsection*{Problema 5}
 
 \begin{code}
+--permuta [] = return []
+--permuta l = do { (h,t) <- getR l ; x <- permuta t ; return (h:x) }
 singletonbag = undefined
 muB = undefined
-dist = undefined
+dist s = undefined--do{x <- totalBalls s; y <- }
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
@@ -1437,6 +1438,7 @@ isBalancedFTree = isJust . cataFTree (either (const (Just 0)) g)
     where
     g (a,(l,r)) = join (liftA2 equal l r)
     equal x y = if x == y then Just (x+1) else Nothing
+
 \end{code}
 %endif
 
