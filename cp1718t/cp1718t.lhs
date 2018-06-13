@@ -1085,13 +1085,39 @@ flatTotalRev (a,b,c,d) = ((a,b),(c,d))
 \subsection*{Problema 4}
 
 \begin{code}
-inFTree = undefined
-outFTree = undefined
-baseFTree = undefined
-recFTree = undefined
-cataFTree = undefined
-anaFTree = undefined
-hyloFTree = undefined
+inFTreeUnit :: b -> FTree a b
+inFTreeUnit b = Unit b
+inFTreeComp :: (a, (FTree a b, FTree a b)) -> FTree a b
+inFTreeComp x = Comp (p1 x) ((p1 . p2) x) ((p2 . p2) x)
+inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
+inFTree = either (inFTreeUnit) (inFTreeComp)
+outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
+outFTree (Unit b) = i1(b)
+outFTree (Comp a t1 t2) = i2(a,(t1,t2))
+baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
+baseFTree f g h = g -|- (f><(h><h))
+recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
+recFTree f g = baseFTree id id f g
+cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
+cataFTree f = f . (recFTree (cataFTree f)) . outFTree
+anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
+anaFTree f = inFTree .(recFTree (anaFTree f)) . f
+hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
+hyloFTree f g = cataFTree f . anaFTree g
+
+--data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
+--type PTree = FTree Square Square
+--type Square = Float
+
+--depthFTree :: FTree a b -> Int
+--depthFTree = cataFTree (either (const 0) g)
+--    where g (a,(l,r)) = max l r + 1
+
+--isBalancedFTree :: FTree a b -> Bool
+--isBalancedFTree = isJust . cataFTree (either (const (Just 0)) g)
+--    where
+--    g (a,(l,r)) = join (liftA2 equal l r)
+--    equal x y = if x == y then Just (x+1) else Nothing
 
 instance Bifunctor FTree where
     bimap = undefined
@@ -1401,14 +1427,6 @@ qt = bm2qt bm
 data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
 type PTree = FTree Square Square
 type Square = Float
-
-inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
-outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
-baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
-recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
-cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
-anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
-hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
 
 depthFTree :: FTree a b -> Int
 depthFTree = cataFTree (either (const 0) g)
