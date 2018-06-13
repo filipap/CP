@@ -21,6 +21,13 @@ rubber :
 clean:
 	rm -rf *.aux *.log *.bbl *.bak *.ptb *.blg *.out *.spl 
 
+clean2: 
+	rm -rf *.aux *.log *.bbl *.bak *.ptb *.blg *.out *.spl *.o *.hi *.idx *.tex
+
 cleanall : clean
 	rm $(file).pdf
+
+latex:
+	lhs2TeX cp1718t.lhs > cp1718t.tex
+	pdflatex cp1718t.tex
 
