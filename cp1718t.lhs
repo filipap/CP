@@ -978,7 +978,7 @@ cataBlockchain g = g . (recBlockchain (cataBlockchain g)) . outBlockchain
 anaBlockchain g = inBlockchain . (recBlockchain(anaBlockchain g)) . g
 hyloBlockchain c a = cataBlockchain c . anaBlockchain a
 
-allTransactions = undefined
+allTransactions = cataBlockchain(either (p2 . p2) (uncurry (++) . ((p2 . p2) >< id)))
 ledger = undefined
 isValidMagicNr = undefined
 \end{code}
