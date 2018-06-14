@@ -1128,11 +1128,21 @@ drawPTree = undefined
 \subsection*{Problema 5}
 
 \begin{code}
---permuta [] = return []
---permuta l = do { (h,t) <- getR l ; x <- permuta t ; return (h:x) }
-singletonbag = undefined
-muB = undefined
-dist s = undefined--do{x <- totalBalls s; y <- }
+----- funções auxiliares  -----------
+--total de cada Bag--
+totalBag :: Bag Marble -> Int
+totalBag = p2 . head . unB . consolidate . (fmap (!))
+--probabilidade de cada cor--
+prob :: Int -> [(a,Int)] -> [(a,ProbRep)]
+prob  n [] = []
+prob  n ((a,b):t) = conc([((a),(fromIntegral b/ fromIntegral n))], (prob n t))
+
+--muBAux :: Bag(Bag a) -> Bag a
+--muBAux (B l) = B(concat (map (unB . p1) l)) 
+
+singletonbag b = return  b 
+muB (B l) = B(concat (map (unB . p1) l))   
+dist b = filterD (oneOf [Green,Red,Pink,Blue,White])  (D (prob (totalBag b) (unB b)))
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
