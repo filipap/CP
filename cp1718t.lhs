@@ -1120,7 +1120,7 @@ outlineQTree f = qt2bm . (outlineAux f)
 base :: (Enum x, Num a, Num b, Num c) => x -> (a, x, b, c)
 base k = (1, succ k, 1, 1)
 loop :: (Integer, Integer, Integer, Integer) -> (Integer, Integer, Integer, Integer)
-loop = flatTotal . ((split ((uncurry (*)) . swap) (succ . p2)) >< (split ((uncurry (*)) . swap) (succ . p2))) . flatTotalRev
+loop = flatTotal . ((split (mul) (succ . p2)) >< (split (mul) (succ . p2))) . flatTotalRev
 flatTotal :: ((a,b),(c,d)) -> (a,b,c,d)
 flatTotal ((a,b),(c,d)) = (a,b,c,d)
 flatTotalRev :: (a,b,c,d) -> ((a,b),(c,d))
@@ -1146,29 +1146,23 @@ recFTree f g = baseFTree id id f g
 cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
 cataFTree f = f . (recFTree (cataFTree f)) . outFTree
 anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
-anaFTree f = inFTree .(recFTree (anaFTree f)) . f
+anaFTree f = inFTree . (recFTree (anaFTree f)) . f
 hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
 hyloFTree f g = cataFTree f . anaFTree g
 
---data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
---type PTree = FTree Square Square
---type Square = Float
-
---depthFTree :: FTree a b -> Int
---depthFTree = cataFTree (either (const 0) g)
---    where g (a,(l,r)) = max l r + 1
-
---isBalancedFTree :: FTree a b -> Bool
---isBalancedFTree = isJust . cataFTree (either (const (Just 0)) g)
---    where
---    g (a,(l,r)) = join (liftA2 equal l r)
---    equal x y = if x == y then Just (x+1) else Nothing
-
 instance Bifunctor FTree where
-    bimap = undefined
+    bimap f g = cataFTree (inFTree . baseFTree f g id)
 
-generatePTree = undefined
-drawPTree = undefined
+generatePTree n = anaFTree (generateFTree n) n
+
+generateFTree :: Int -> Int -> Either Square (Square, (Int, Int))
+generateFTree nInicial n = if (n==0) then i1 ((sqrt(2)/2)^(nInicial))
+                                     else i2 ((sqrt(2)/2)^(nInicial-n), (n-1, n-1))
+
+--nao está feito isto é um prototipo do draw
+drawPTree (Unit u) = (Polygon [(100,100),(u*100,0),(u*100,u*100),(0,u*100)]):[]
+drawPTree (Comp c a b) = (Polygon [(0,0),(c*100,0),(c*100,c*100),(0,c*100)]):[] ++ (drawPTree a) ++ (drawPTree b)
+
 \end{code}
 
 \subsection*{Problema 5}
