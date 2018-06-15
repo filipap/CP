@@ -1009,24 +1009,7 @@ b2l b = (concat . (map t2l) . p2 . p2) b
 t2l :: Transaction -> Ledger
 t2l (origin,(value,destination)) = [(origin, -value),(destination,value)]
 
---isValidMagicNr = undefined
---isValidMagicNr :: Blockchain -> Bool
-isValidMagicNr (Bc b) = True
---isValidMagicNr (Bcs b) = (isUnique (p1(p1(b))) (p2(b))) && isValidMagicNr(p2(b))
---isValidMagicNr (Bcs b) = (&&) (isUnique ((p1 . p1) b) (p2 b))  ((isValidMagicNr . p2) b)
---isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique)) (((p1 . p1) b),(p2 b)))  ((isValidMagicNr . p2) b)
---isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique)) (split (p1 . p1) (id . p2) b))  ((isValidMagicNr . p2) b)
---isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique)) ((p1 >< id) b))  ((isValidMagicNr . p2) b)
---isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique) . (p1 >< id)) b)  ((isValidMagicNr . p2) b)
---isValidMagicNr (Bcs b) = uncurry(&&) (split ((uncurry(isUnique) . (p1 >< id)))  ((isValidMagicNr . p2)) b)
---isValidMagicNr (Bcs b) = (uncurry(&&) . (split ((uncurry(isUnique) . (p1 >< id)))  ((isValidMagicNr . p2)))) b
-isValidMagicNr (Bcs b) = (uncurry(&&) . (split ((uncurry(isUnique) . (p1 >< id)))  ((p2 . (id >< isValidMagicNr))))) b
-
-
-
-isUnique :: MagicNo -> Blockchain -> Bool
-isUnique x (Bc b) =  x /= (p1 b)
-isUnique x (Bcs bs) = (x /= (p1(p1(bs)))) && (isUnique x (p2(bs)))
+isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(either (return . p1) (uncurry(:) . (p1 >< id))))
 \end{code}
 
 
@@ -1178,10 +1161,10 @@ prob  n [] = []
 prob  n ((a,b):t) = conc([((a),(fromIntegral b/ fromIntegral n))], (prob n t))
 
 --muBAux :: Bag(Bag a) -> Bag a
---muBAux (B l) = B(concat (map (unB . p1) l)) 
+--muBAux (B l) = B(concat (map (unB . p1) l))
 
-singletonbag b = return  b 
-muB (B l) = B(concat (map (unB . p1) l))   
+singletonbag b = return  b
+muB (B l) = B(concat (map (unB . p1) l))
 dist b = filterD (oneOf [Green,Red,Pink,Blue,White])  (D (prob (totalBag b) (unB b)))
 \end{code}
 
