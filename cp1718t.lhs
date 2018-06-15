@@ -978,9 +978,55 @@ cataBlockchain g = g . (recBlockchain (cataBlockchain g)) . outBlockchain
 anaBlockchain g = inBlockchain . (recBlockchain(anaBlockchain g)) . g
 hyloBlockchain c a = cataBlockchain c . anaBlockchain a
 
+mt1 = ("t1",10)
+mt2 = ("t2",20)
+mt3 = ("t3",30)
+mtt :: Ledger
+mtt = [mt1,mt2,mt3]
+
 allTransactions = cataBlockchain(either (p2 . p2) (uncurry (++) . ((p2 . p2) >< id)))
-ledger = undefined
-isValidMagicNr = undefined
+
+-- Catamorfismo transforma a blockchain numa ledger com membros repetidos
+-- O ledge nub junta todas as entidades iguais
+ledger = ledgeNub . cataBlockchain (either (b2l) (uncurry (++) . (b2l >< id)))
+
+--Soma o valor de todas as entidades com o mesmo nome
+ledgeNub :: Ledger -> Ledger
+ledgeNub [] = []
+ledgeNub (x:[]) = [x]
+ledgeNub (x:xs) = op x (ledgeNub xs)
+    where
+        op :: (Entity,Value) -> Ledger -> Ledger
+        op s [] = [s]
+        op (e1,v1) ((e2,v2):xs)
+            | e1 == e2 = (e1,v1 + v2) : xs
+            | otherwise =  (e2,v2) : (op (e1,v1) xs)
+
+--Extrai a ledger de cada Block
+b2l :: Block -> Ledger
+b2l b = (concat . (map t2l) . p2 . p2) b
+--Extrai a ledger de cada Transaction
+t2l :: Transaction -> Ledger
+t2l (origin,(value,destination)) = [(origin, -value),(destination,value)]
+
+--isValidMagicNr = undefined
+--isValidMagicNr :: Blockchain -> Bool
+isValidMagicNr (Bc b) = True
+--isValidMagicNr (Bcs b) = (isUnique (p1(p1(b))) (p2(b))) && isValidMagicNr(p2(b))
+--isValidMagicNr (Bcs b) = (&&) (isUnique ((p1 . p1) b) (p2 b))  ((isValidMagicNr . p2) b)
+--isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique)) (((p1 . p1) b),(p2 b)))  ((isValidMagicNr . p2) b)
+--isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique)) (split (p1 . p1) (id . p2) b))  ((isValidMagicNr . p2) b)
+--isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique)) ((p1 >< id) b))  ((isValidMagicNr . p2) b)
+--isValidMagicNr (Bcs b) = (&&) ((uncurry(isUnique) . (p1 >< id)) b)  ((isValidMagicNr . p2) b)
+--isValidMagicNr (Bcs b) = uncurry(&&) (split ((uncurry(isUnique) . (p1 >< id)))  ((isValidMagicNr . p2)) b)
+--isValidMagicNr (Bcs b) = (uncurry(&&) . (split ((uncurry(isUnique) . (p1 >< id)))  ((isValidMagicNr . p2)))) b
+isValidMagicNr (Bcs b) = (uncurry(&&) . (split ((uncurry(isUnique) . (p1 >< id)))  ((p2 . (id >< isValidMagicNr))))) b
+
+
+
+isUnique :: MagicNo -> Blockchain -> Bool
+isUnique x (Bc b) =  x /= (p1 b)
+isUnique x (Bcs bs) = (x /= (p1(p1(bs)))) && (isUnique x (p2(bs)))
 \end{code}
 
 
