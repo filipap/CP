@@ -1090,8 +1090,7 @@ celuralize (Cell x y z) = x
 celuralize (Block o b c d) = celuralize o
 
 cutQTree :: QTree a -> QTree a
-cutQTree (Cell x y z) = (Cell x y z)
-cutQTree q = Cell (celuralize q) (p1$sizeQTree q) (p2$sizeQTree q)
+cutQTree q = Cell (celuralize q) (p1 $ sizeQTree q) (p2 $ sizeQTree q)
 
 compressQTreeAux :: Int -> QTree a -> QTree a
 compressQTreeAux n q = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))q
@@ -1108,9 +1107,9 @@ scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)--fmap adapta
 invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 --passou nos testes mas não da como ta no trabalho
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
-
---outlineQTree f = if (f) then (qt2bm.(cataQTree (inQTree . baseQTree f id)) else (qt2bm.(cataQTree (inQTree . recQTree ))
-outlineQTree = undefined
+--esta mal--
+outlineQTree f = qt2bm . (outlineAux f)
+--outlineQTree = undefined
 
 
 \end{code}
@@ -1131,14 +1130,39 @@ flatTotalRev (a,b,c,d) = ((a,b),(c,d))
 \subsection*{Problema 4}
 
 \begin{code}
-inFTree = undefined
-outFTree = undefined
-baseFTree = undefined
-recFTree = undefined
-cataFTree = undefined
-anaFTree = undefined
-hyloFTree a c = cataFTree a . anaFTree c
+inFTreeUnit :: b -> FTree a b
+inFTreeUnit b = Unit b
+inFTreeComp :: (a, (FTree a b, FTree a b)) -> FTree a b
+inFTreeComp x = Comp (p1 x) ((p1 . p2) x) ((p2 . p2) x)
+inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
+inFTree = either (inFTreeUnit) (inFTreeComp)
+outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
+outFTree (Unit b) = i1(b)
+outFTree (Comp a t1 t2) = i2(a,(t1,t2))
+baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
+baseFTree f g h = g -|- (f><(h><h))
+recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
+recFTree f g = baseFTree id id f g
+cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
+cataFTree f = f . (recFTree (cataFTree f)) . outFTree
+anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
+anaFTree f = inFTree .(recFTree (anaFTree f)) . f
+hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
+hyloFTree f g = cataFTree f . anaFTree g
 
+--data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
+--type PTree = FTree Square Square
+--type Square = Float
+
+--depthFTree :: FTree a b -> Int
+--depthFTree = cataFTree (either (const 0) g)
+--    where g (a,(l,r)) = max l r + 1
+
+--isBalancedFTree :: FTree a b -> Bool
+--isBalancedFTree = isJust . cataFTree (either (const (Just 0)) g)
+--    where
+--    g (a,(l,r)) = join (liftA2 equal l r)
+--    equal x y = if x == y then Just (x+1) else Nothing
 
 instance Bifunctor FTree where
     bimap = undefined
@@ -1150,9 +1174,21 @@ drawPTree = undefined
 \subsection*{Problema 5}
 
 \begin{code}
-singletonbag = undefined
-muB = undefined
-dist = undefined
+----- funções auxiliares  -----------
+--total de cada Bag--
+totalBag :: Bag Marble -> Int
+totalBag = p2 . head . unB . consolidate . (fmap (!))
+--probabilidade de cada cor--
+prob :: Int -> [(a,Int)] -> [(a,ProbRep)]
+prob  n [] = []
+prob  n ((a,b):t) = conc([((a),(fromIntegral b/ fromIntegral n))], (prob n t))
+
+--muBAux :: Bag(Bag a) -> Bag a
+--muBAux (B l) = B(concat (map (unB . p1) l)) 
+
+singletonbag b = return  b 
+muB (B l) = B(concat (map (unB . p1) l))   
+dist b = filterD (oneOf [Green,Red,Pink,Blue,White])  (D (prob (totalBag b) (unB b)))
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
@@ -1449,14 +1485,6 @@ data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
 type PTree = FTree Square Square
 type Square = Float
 
-inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
-outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
-baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
-recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
-cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
-anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
-hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
-
 depthFTree :: FTree a b -> Int
 depthFTree = cataFTree (either (const 0) g)
     where g (a,(l,r)) = max l r + 1
@@ -1466,6 +1494,7 @@ isBalancedFTree = isJust . cataFTree (either (const (Just 0)) g)
     where
     g (a,(l,r)) = join (liftA2 equal l r)
     equal x y = if x == y then Just (x+1) else Nothing
+
 \end{code}
 %endif
 
