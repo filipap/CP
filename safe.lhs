@@ -1176,12 +1176,14 @@ mscale (Comp c a b) = (Comp (c*100) (mscale a) (mscale b))
 
 op3 :: PTree -> [Picture]
 op3 (Unit u) = [square u]
-op3 (Comp c a b) = square c : (fmap (rt c ) (op3 a)) ++ (fmap (rt' c) (op3 b))
+op3 (Comp c a b) = let d = pit(c)*100 in square (c * 100) : (fmap (rt d) (op3 a)) ++ (fmap (rt' d) (op3 a))
 
-
-
-rt = (rotate 45 .) . Control.Monad.ap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
-rt' = (rotate (-45) .) . Control.Monad.ap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
+rt = (r45 .) . trans
+rt' = (r45' .) . trans'
+r45 = rotate 45
+r45' = rotate (-45)
+trans = Control.Monad.ap (translate . negate . ((1 / 2) *)) ((3 / 2) *)
+trans' = Control.Monad.ap (translate . ((1 / 2) *)) ((3 / 2) *)
 
 \end{code}
 
