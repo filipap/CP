@@ -590,7 +590,7 @@ prop2f (Nat n) = depthQTree . compressQTree n .==. (`minusNat` n) . depthQTree
         Tente produzir imagens similares (mas não necessariamente iguais) às Figuras~\ref{fig:personOut1} e \ref{fig:personOut2}:
 %if False
 \begin{code}
-outlineQTree :: (a -> Bool) -> QTree a -> Matrix Bool
+outlineQTree :: (Eq a) => (a -> Bool) -> QTree a -> Matrix Bool
 --outlineQTree = undefined
 \end{code}
 %endif
@@ -1050,8 +1050,19 @@ compressQTreeAux :: Int -> QTree a -> QTree a
 compressQTreeAux n q = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))q
                                         else cutQTree q
 --5--
-outlineAux :: (a->Bool) -> QTree a -> QTree Bool
-outlineAux f = fmap f
+isBackground :: Integer -> Bool
+isBackground 0 = True
+isBackground q = False
+
+pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
+pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)     
+
+outlineAux :: (a-> Bool) -> QTree a -> QTree Bool
+outlineAux f (Cell x y z) = if (f x) 
+                                then bm2qt(pintaCell (f x) y z (qt2bm((Cell (not(f x)) y z))))
+                                else (Cell (f x) y z) 
+outlineAux f (Block a b c d) = (Block (p a) (p b) (p c) (p d)) where p = outlineAux f  
+
 -- perguntas --
 --passou nos testes todos
 rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
@@ -1061,9 +1072,9 @@ scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)--fmap adapta
 invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 --passou nos testes mas não da como ta no trabalho
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
---esta mal--
-outlineQTree f = qt2bm . (outlineAux f)
---outlineQTree = undefined
+--passou nos testes todos
+outlineQTree f =  (qt2bm) . (outlineAux f)    
+
 
 
 \end{code}
