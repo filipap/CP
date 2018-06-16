@@ -735,7 +735,7 @@ square s = rectangleSolid s s
 
 animatePTree n = animate window white draw
     where
-    pics = op3 (mscale(generatePTree n))
+    pics = drawPTree (generatePTree n)
     draw t = pics !! (floor (t/2))
 \end{code}
 %endif
@@ -978,13 +978,7 @@ recBlockchain f = id -|- id><(f)
 cataBlockchain g = g . (recBlockchain (cataBlockchain g)) . outBlockchain
 anaBlockchain g = inBlockchain . (recBlockchain(anaBlockchain g)) . g
 hyloBlockchain c a = cataBlockchain c . anaBlockchain a
-
-mt1 = ("t1",10)
-mt2 = ("t2",20)
-mt3 = ("t3",30)
-mtt :: Ledger
-mtt = [mt1,mt2,mt3]
-
+--Exercio 1
 allTransactions = cataBlockchain(either (p2 . p2) (uncurry (++) . ((p2 . p2) >< id)))
 
 -- Catamorfismo transforma a blockchain numa ledger com membros repetidos
@@ -1015,6 +1009,7 @@ b2l b = (concat . (map t2l) . p2 . p2) b
 t2l :: Transaction -> Ledger
 t2l (origin,(value,destination)) = [(origin, -value),(destination,value)]
 
+--Ex3 se o comprimento da chain for /= do numero de MagicNo diferentes entao ha repetidos
 isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(either (return . p1) (uncurry(:) . (p1 >< id))))
 \end{code}
 
@@ -1090,13 +1085,13 @@ isBackground 0 = True
 isBackground q = False
 
 pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
-pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)     
+pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
 
 outlineAux :: (a-> Bool) -> QTree a -> QTree Bool
-outlineAux f (Cell x y z) = if (f x) 
+outlineAux f (Cell x y z) = if (f x)
                                 then bm2qt(pintaCell (f x) y z (qt2bm((Cell (not(f x)) y z))))
-                                else (Cell (f x) y z) 
-outlineAux f (Block a b c d) = (Block (p a) (p b) (p c) (p d)) where p = outlineAux f  
+                                else (Cell (f x) y z)
+outlineAux f (Block a b c d) = (Block (p a) (p b) (p c) (p d)) where p = outlineAux f
 
 -- perguntas --
 --passou nos testes todos
@@ -1108,7 +1103,7 @@ invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 --passou nos testes mas não da como ta no trabalho
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
 --passou nos testes todos
-outlineQTree f =  (qt2bm) . (outlineAux f)    
+outlineQTree f =  (qt2bm) . (outlineAux f)
 
 
 
@@ -1156,45 +1151,21 @@ instance Bifunctor FTree where
 generatePTree n = anaFTree (generateFTree n) n
 
 generateFTree :: Int -> Int -> Either Square (Square, (Int, Int))
-generateFTree nInicial n = if (n==0) then i1 ((sqrt(2)/2)^(nInicial))
-                                     else i2 ((sqrt(2)/2)^(nInicial-n), (n-1, n-1))
-
---nao está feito isto é um prototipo do draw
-drawPTree (Unit u) = (Polygon [(100,100),(u*100,0),(u*100,u*100),(0,u*100)]):[]
-drawPTree (Comp c a b) = (Polygon [(0,0),(c*100,0),(c*100,c*100),(0,c*100)]):[] ++ (drawPTree a) ++ (drawPTree b)
-
-help2 = pictures . drawPTree . generatePTree
-
-background :: Color
-background = white
-
-drawing :: Float -> Picture
-drawing c = (Polygon [(0,0),(c*100,0),(c*100,c*100),(0,c*100)])
-
-wind :: PTree -> IO ()
-wind i = display window background (pictures(op3 i))
+generateFTree nInicial n = if (n==0) then i1 (100*(sqrt(2)/2)^(nInicial))
+                                     else i2 (100*(sqrt(2)/2)^(nInicial-n), (n-1, n-1))
 
 
-pit f = sqrt((f^2)/2)
 
-op :: Int -> Square -> Picture
-op 0 tam = square tam
-op x tam = (pictures [square tam,(rotate (45) (translate (-(1/2) * pit(tam)) ((3/2) * pit(tam)) (op (x-1) (pit(tam))))),(rotate (-45) (translate ((1/2) * pit(tam)) ((3/2) * pit(tam)) (op (x-1) (pit(tam)))))])
+wind :: Int -> IO ()
+wind i = display window white (pictures(drawPTree(generatePTree i)))
 
-t = (mscale . generatePTree) 10
 
-op2 :: PTree -> Picture
-op2 (Unit u) = square (u * 100)
-op2 (Comp c a b) = let d = pit(c)*100 in (pictures [square (c * 100),(rt d (op2 a)),(rt' d (op2 b))])
 
-mscale :: PTree -> PTree
-mscale (Unit u) = Unit (u*100)
-mscale (Comp c a b) = (Comp (c*100) (mscale a) (mscale b))
+drawPTree = cataFTree(either (return . square) (drawAux))
 
-op3 :: PTree -> [Picture]
-op3 (Unit u) = [square u]
-op3 (Comp c a b) = square c : (fmap (rt c ) (op3 a)) ++ (fmap (rt' c) (op3 b))
-
+drawAux :: (Square, ([Picture], [Picture])) -> [Picture]
+drawAux (c,(a:[],b:[])) = [(square c),a,b]
+drawAux (c,(a,b)) = square c : (fmap (rt c ) a) ++ (fmap (rt' c) b)
 
 rt = (rotate 45 .) . Control.Monad.ap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
 rt' = (rotate (-45) .) . Control.Monad.ap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
