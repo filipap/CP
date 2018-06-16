@@ -172,6 +172,7 @@ import Nat
 import Probability hiding (cond)
 import BMP
 
+import Control.Monad.Fix
 import Data.List
 import Data.Typeable
 import Data.Ratio
@@ -734,7 +735,7 @@ square s = rectangleSolid s s
 
 animatePTree n = animate window white draw
     where
-    pics = drawPTree (generatePTree n)
+    pics = op3 (mscale(generatePTree n))
     draw t = pics !! (floor (t/2))
 \end{code}
 %endif
@@ -991,18 +992,23 @@ allTransactions = cataBlockchain(either (p2 . p2) (uncurry (++) . ((p2 . p2) >< 
 ledger = ledgeNub . cataBlockchain (either (b2l) (uncurry (++) . (b2l >< id)))
 
 --Soma o valor de todas as entidades com o mesmo nome
-ledgeNub :: Ledger -> Ledger
-ledgeNub [] = []
-ledgeNub (x:[]) = [x]
-ledgeNub (x:xs) = op x (ledgeNub xs)
-    where
-        op :: (Entity,Value) -> Ledger -> Ledger
-        op s [] = [s]
-        op (e1,v1) ((e2,v2):xs)
-            | e1 == e2 = (e1,v1 + v2) : xs
-            | otherwise =  (e2,v2) : (op (e1,v1) xs)
 
---Extrai a ledger de cada Block
+type Ledge = (Entity,Value)
+
+ledgeNub = cataList (either (const([])) (uncurry(aux)))
+    where
+        aux :: Ledge -> Ledger -> Ledger
+        aux s [] = [s]
+        aux s (x:xs) = cond p f g (x,xs)
+            where
+                p :: (Ledge,    Ledger) -> Bool
+                p = (p1 s ==) . p1 . p1
+                f :: (Ledge, Ledger) -> Ledger
+                f = uncurry(:) . ((id><((p2 s) +))><id)
+                g :: (Ledge, Ledger) -> Ledger
+                g = uncurry(:) . (id><(aux s))
+
+
 b2l :: Block -> Ledger
 b2l b = (concat . (map t2l) . p2 . p2) b
 --Extrai a ledger de cada Transaction
@@ -1177,7 +1183,6 @@ mscale (Comp c a b) = (Comp (c*100) (mscale a) (mscale b))
 op3 :: PTree -> [Picture]
 op3 (Unit u) = [square u]
 op3 (Comp c a b) = square c : (fmap (rt c ) (op3 a)) ++ (fmap (rt' c) (op3 b))
-
 
 
 rt = (rotate 45 .) . Control.Monad.ap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
