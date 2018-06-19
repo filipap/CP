@@ -1080,17 +1080,8 @@ compressQTreeAux :: Int -> QTree a -> QTree a
 compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))
                                         else cutQTree 
 --5--
-isBackground :: Integer -> Bool
-isBackground 0 = True
-isBackground q = False
-
 pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
 pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
-
----outAux :: Matrix  -> Either (Bool, (Int, Int)) (Matrix a, (Matrix a, (Matrix a, Matrix a)))
-
---anaAux :: Matrix a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
---anaAux =  (outQTree . bm2qt)
 
 invertOutline :: QTree Bool -> QTree Bool
 invertOutline = fmap (not) 
@@ -1098,7 +1089,6 @@ invertOutline = fmap (not)
 inQTreeAdapted :: (Bool,(Int,Int)) -> Matrix Bool
 inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm.invertOutline . inQTreeCell) (a,(b,c)) 
                                   else ((pintaCell True b c) . qt2bm . inQTreeCell) (a,(b,c))
-
 
 outlineAux :: QTree Bool -> Matrix Bool
 outlineAux = (cataQTree(either f g))   
