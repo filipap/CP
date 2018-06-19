@@ -1074,11 +1074,11 @@ celuralize (Cell x y z) = x
 celuralize (Block o b c d) = celuralize o
 
 cutQTree :: QTree a -> QTree a
-cutQTree q = Cell (celuralize q) (p1 $ sizeQTree q) (p2 $ sizeQTree q)
+cutQTree q = Cell (celuralize q) ((p1 . sizeQTree) q) ((p2 . sizeQTree) q)
 
 compressQTreeAux :: Int -> QTree a -> QTree a
-compressQTreeAux n q = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))q
-                                        else cutQTree q
+compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))
+                                        else cutQTree 
 --5--
 isBackground :: Integer -> Bool
 isBackground 0 = True
@@ -1087,11 +1087,24 @@ isBackground q = False
 pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
 pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
 
-outlineAux :: (a-> Bool) -> QTree a -> QTree Bool
-outlineAux f (Cell x y z) = if (f x)
-                                then bm2qt(pintaCell (f x) y z (qt2bm((Cell (not(f x)) y z))))
-                                else (Cell (f x) y z)
-outlineAux f (Block a b c d) = (Block (p a) (p b) (p c) (p d)) where p = outlineAux f
+---outAux :: Matrix  -> Either (Bool, (Int, Int)) (Matrix a, (Matrix a, (Matrix a, Matrix a)))
+
+--anaAux :: Matrix a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
+--anaAux =  (outQTree . bm2qt)
+
+invertOutline :: QTree Bool -> QTree Bool
+invertOutline = fmap (not) 
+
+inQTreeAdapted :: (Bool,(Int,Int)) -> Matrix Bool
+inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm.invertOutline . inQTreeCell) (a,(b,c)) 
+                                  else ((pintaCell True b c) . qt2bm . inQTreeCell) (a,(b,c))
+
+
+outlineAux :: QTree Bool -> Matrix Bool
+outlineAux = (cataQTree(either f g))   
+                  where 
+                   f (x,(y,z))= inQTreeAdapted (x,(y,z))
+                   g (a,(b,(c,d))) = joinBlocks(a,b,c,d)     
 
 -- perguntas --
 --passou nos testes todos
@@ -1101,9 +1114,9 @@ scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)--fmap adapta
 --passou nos testes todos
 invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 --passou nos testes mas não da como ta no trabalho
-compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
+compressQTree n q = compressQTreeAux ((depthQTree q) - n) q 
 --passou nos testes todos
-outlineQTree f =  (qt2bm) . (outlineAux f)
+outlineQTree f = (outlineAux) . (fmap (not . f))
 
 
 
@@ -1167,8 +1180,8 @@ drawAux :: (Square, ([Picture], [Picture])) -> [Picture]
 drawAux (c,(a:[],b:[])) = [(square c),a,b]
 drawAux (c,(a,b)) = square c : (fmap (rt c ) a) ++ (fmap (rt' c) b)
 
-rt = (rotate 45 .) . Control.Monad.ap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
-rt' = (rotate (-45) .) . Control.Monad.ap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
+rt = (rotate 45 .) . aap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
+rt' = (rotate (-45) .) . aap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
 
 \end{code}
 
@@ -1184,11 +1197,11 @@ prob :: Int -> [(a,Int)] -> [(a,ProbRep)]
 prob  n [] = []
 prob  n ((a,b):t) = conc([((a),(fromIntegral b/ fromIntegral n))], (prob n t))
 
---muBAux :: Bag(Bag a) -> Bag a
---muBAux (B l) = B(concat (map (unB . p1) l))
+--muBAux :: Bag (Bag a) -> Bag a 
+--muBAux (B l) = do {return (B (p1 . head) l);} 
 
 singletonbag b = return  b
-muB (B l) = B(concat (map (unB . p1) l))
+muB q = undefined --Control.Monad.join q 
 dist b = filterD (oneOf [Green,Red,Pink,Blue,White])  (D (prob (totalBag b) (unB b)))
 \end{code}
 
