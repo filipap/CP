@@ -3,6 +3,7 @@
 \usepackage{palatino}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage{graphicx}
+\usepackage[all,cmtip]{xy}
 \usepackage{cp1718t}
 \usepackage{subcaption}
 \usepackage{adjustbox}
@@ -1013,13 +1014,12 @@ t2l (origin,(value,destination)) = [(origin, -value),(destination,value)]
 isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(either (return . p1) (uncurry(:) . (p1 >< id))))
 \end{code}
 
-
 \subsection*{Problema 2}
 
-\par Este problema teve como diagrama base o hilomorfismo de QTree aseguir apresentado:
-
+\par Para a resolução deste problema tivemos como base o hilomorfismo de QTree \\
+\par {\bf Anamorfismo de QTree:}
 \begin{eqnarray*}
-\xymatrix@@C=2cm{
+\xymatrix@@C=1cm{
     |Matrix a|
            \ar[d]_-{|anaQTree f|}
            \ar[r]^-{|f|}
@@ -1031,11 +1031,15 @@ isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(e
 &
     |QTree a + (QTree a >< (QTree a ><(QTree a >< QTree a)))|
            \ar[l]^-{|inQTree|}
+\\
+\\
 }
 \end{eqnarray*}
 
+\par {\bf Catamorfismo de QTree:}
+
 \begin{eqnarray*}
-\xymatrix@@C=2cm{
+\xymatrix@@C=1cm{
     |QTree a|
            \ar[d]_-{|cataQTree g|}
            \ar[r]^-{|outQTree|}
@@ -1050,7 +1054,7 @@ isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(e
 }
 \end{eqnarray*}
 
-
+\par definindo-se assim as seguintes funções
 \begin{code}
 data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a)
   deriving (Eq,Show)
@@ -1071,8 +1075,11 @@ outQTree (Block a b c d) = i2(a,(b,(c,d)))
 baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
 baseQTree f g = (f><id) -|- (g><(g><(g><g)))
 
+baseQTreeScale :: (d2 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (a1, b) (d1, (d1, (d1, d1)))
+baseQTreeScale f g = (id><f) -|- (g><(g><(g><g)))
+
 recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-recQTree f g = baseQTree id f g
+recQTree f = baseQTree id f 
 
 cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
 cataQTree f = f . (recQTree (cataQTree f)) . outQTree
@@ -1081,29 +1088,48 @@ anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree 
 anaQTree g = inQTree .(recQTree (anaQTree g)) . g
 
 hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
-hyloQTree a c = cataQTree a . anaQTree c
-
+hyloQTree f g = cataQTree f . anaQTree g
 
 instance Functor QTree where
     fmap f = cataQTree (inQTree . baseQTree f id)
 
---funções auxiliares
---1--
-myfunction:: (a,(a,(a,a))) -> (a,(a,(a,a)))
-myfunction (x,(y,(z,w))) = (z,(x,(w,y)))
+\end{code}
+\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\
+\par {\bf rotateQTree} 
+\par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction. 
+Também se definiu uma função que dado o functor de QTree fazia apenas a rotação dos blocos mantendo intactas as células.\\
+Fica a faltar a troca dos tamanhos das células que é feito na função principal.     
+\begin{code}
+--funções auxiliares--
+myfunction:: (a->a) -> (a,(a,(a,a))) -> (a,(a,(a,a)))
+myfunction f (x,(y,(z,w))) = (f z,(f x,(f w,f y)))
 
 rotateAux :: Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (a, (a, (a, a)))
 rotateAux =  id -|- myfunction
---2--
-baseQTreeScale :: (d2 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (a1, b) (d1, (d1, (d1, d1)))
-baseQTreeScale f g = (id><f) -|- (g><(g><(g><g)))
-
+--função principal--
+rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
+\end{code}
+\par {\bf scaleQTree} 
+\par Para a resolução desta questão apenas se fez o catamorfismo da função \verb scaleAux a todas as células da àrvore
+\begin{code}
+--função auxiliar--
 scaleAux :: Int -> (Int,Int) -> (Int,Int)
 scaleAux n (a,b) = (n*a,n*b)
---3--
+--função principal--
+scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)
+\end{code}
+\par {\bf invertQTree}
+\par Para a resolução desta questão apenas se fez o catamorfismo da função \verb changeColor a todas as células da àrvore
+\begin{code}
+--função auxiliar--
 changeColor :: PixelRGBA8 -> PixelRGBA8
 changeColor (PixelRGBA8 x y z w) = PixelRGBA8 (255-x)(255-y)(255-z)(255-w)
---4--
+--função principal--
+invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
+\end{code}
+\par {\bf compressQTree}
+\begin{code}
+--funções auxiliares--
 celuralize :: QTree a -> a
 celuralize (Cell x y z) = x
 celuralize (Block o b c d) = celuralize o
@@ -1114,7 +1140,12 @@ cutQTree q = Cell (celuralize q) ((p1 . sizeQTree) q) ((p2 . sizeQTree) q)
 compressQTreeAux :: Int -> QTree a -> QTree a
 compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))
                                         else cutQTree 
---5--
+--função principal--
+compressQTree n q = compressQTreeAux ((depthQTree q) - n) q 
+\end{code}
+\par {\bf outlineQTree}
+\begin{code}
+--funções auxiliares--
 pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
 pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
 
@@ -1129,21 +1160,9 @@ outlineAux :: QTree Bool -> Matrix Bool
 outlineAux = (cataQTree(either f g))   
                   where 
                    f (x,(y,z))= inQTreeAdapted (x,(y,z))
-                   g (a,(b,(c,d))) = joinBlocks(a,b,c,d)     
-
--- perguntas --
---passou nos testes todos
-rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
---passou nos testes todos
-scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)--fmap adaptado para esta questão
---passou nos testes todos
-invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
---passou nos testes mas não da como ta no trabalho
-compressQTree n q = compressQTreeAux ((depthQTree q) - n) q 
---passou nos testes todos
-outlineQTree f = (outlineAux) . (fmap (not . f))
-
-
+                   g (a,(b,(c,d))) = joinBlocks(a,b,c,d)   
+--função principal--
+outlineQTree f = (outlineAux) . (fmap (not . f))  
 
 \end{code}
 
