@@ -1016,6 +1016,41 @@ isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(e
 
 \subsection*{Problema 2}
 
+\par Este problema teve como diagrama base o hilomorfismo de QTree aseguir apresentado:
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Matrix a|
+           \ar[d]_-{|anaQTree f|}
+           \ar[r]^-{|f|}
+&
+    |QTree a + (Matrix a >< (Matrix a ><(Matrix a >< Matrix a)))|
+           \ar[d]^{|id + (anaQTree f >< (anaQTree f >< (anaQTree f >< anaQTree f)))|}
+\\
+    |QTree a|
+&
+    |QTree a + (QTree a >< (QTree a ><(QTree a >< QTree a)))|
+           \ar[l]^-{|inQTree|}
+}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |QTree a|
+           \ar[d]_-{|cataQTree g|}
+           \ar[r]^-{|outQTree|}
+&
+    |QTree a + (QTree a >< (QTree a ><(QTree a >< QTree a)))|
+           \ar[d]^{|id + (cataQTree g >< (cataQTree g >< (cataQTree g >< cataQTree g)))|}
+\\
+    |Matrix a|
+&
+    |QTree a + (Matrix a >< (Matrix a ><(Matrix a >< Matrix a)))|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+
+
 \begin{code}
 data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a)
   deriving (Eq,Show)
@@ -1186,9 +1221,9 @@ totalBag = p2 . head . unB . consolidate . (fmap (!))
 prob :: Int -> [(a,Int)] -> [(a,ProbRep)]
 prob  n [] = []
 prob  n ((a,b):t) = conc([((a),(fromIntegral b/ fromIntegral n))], (prob n t))
-
---muBAux :: Bag (Bag a) -> Bag a 
---muBAux (B l) = do {return (B (p1 . head) l);} 
+ 
+--concBag :: [Bag a] -> Bag a 
+--concBag (h:t) = B (conc(h,concBag t))  
 
 singletonbag b = return  b
 muB q = undefined --Control.Monad.join q 
