@@ -1094,22 +1094,23 @@ instance Functor QTree where
     fmap f = cataQTree (inQTree . baseQTree f id)
 
 \end{code}
-\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\
-\par {\bf rotateQTree} 
+\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ \\  
+\maketitle {\bf rotateQTree}    
 \par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction. 
-Também se definiu uma função que dado o functor de QTree fazia apenas a rotação dos blocos mantendo intactas as células.\\
+Também se definiu uma função (\verb rotateAux ) que dado o functor de QTree fazia apenas a rotação dos blocos mantendo intactas as células.\\
 Fica a faltar a troca dos tamanhos das células que é feito na função principal.     
 \begin{code}
 --funções auxiliares--
-myfunction:: (a->a) -> (a,(a,(a,a))) -> (a,(a,(a,a)))
-myfunction f (x,(y,(z,w))) = (f z,(f x,(f w,f y)))
+myfunction:: (a,(a,(a,a))) -> (a,(a,(a,a)))
+myfunction (x,(y,(z,w))) = (z,(x,(w,y)))
 
 rotateAux :: Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (a, (a, (a, a)))
 rotateAux =  id -|- myfunction
 --função principal--
 rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
 \end{code}
-\par {\bf scaleQTree} 
+\maketitle {\bf scaleQTree} 
+\par  
 \par Para a resolução desta questão apenas se fez o catamorfismo da função \verb scaleAux a todas as células da àrvore
 \begin{code}
 --função auxiliar--
@@ -1118,7 +1119,8 @@ scaleAux n (a,b) = (n*a,n*b)
 --função principal--
 scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)
 \end{code}
-\par {\bf invertQTree}
+\maketitle {\bf invertQTree}
+\par  
 \par Para a resolução desta questão apenas se fez o catamorfismo da função \verb changeColor a todas as células da àrvore
 \begin{code}
 --função auxiliar--
@@ -1127,7 +1129,10 @@ changeColor (PixelRGBA8 x y z w) = PixelRGBA8 (255-x)(255-y)(255-z)(255-w)
 --função principal--
 invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 \end{code}
-\par {\bf compressQTree}
+\maketitle {\bf compressQTree}
+\par  
+\par Para resolver esta questão recorreu-se a uma função auxiliar que cortava a QTree a uma determinada profundidade \verb compressQTreeAux . Enquanto não chegasse à profundidade de corte fazia a recursividade da função nos blocos. Quando se chegasse lá usava-se a função \verb cutQTree  que substituia os blocos por células com o tamanho (\verb sizeQTree)  do bloco respetivo.  
+
 \begin{code}
 --funções auxiliares--
 celuralize :: QTree a -> a
@@ -1143,17 +1148,23 @@ compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAu
 --função principal--
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q 
 \end{code}
-\par {\bf outlineQTree}
+\maketitle {\bf outlineQTree}
+\par 
+\par Esta questão necessitou de dois passos para ser resolvida:
+\begin{itemize}
+   \item aplicação da negação da função f a todas as células da àrvore
+   \item definição da função \verb outlineAux  que faz o catamorfismo de uma função f 
+   que dada uma célula do tipo Bool, caso ela fosse False, preenchia-se as bordas com 
+   True, caso contrário preenchia-se matriz a False, e uma função g que junta as submatrizes formadas. 
+\end{itemize} 
+
 \begin{code}
 --funções auxiliares--
 pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
 pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
 
-invertOutline :: QTree Bool -> QTree Bool
-invertOutline = fmap (not) 
-
 inQTreeAdapted :: (Bool,(Int,Int)) -> Matrix Bool
-inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm.invertOutline . inQTreeCell) (a,(b,c)) 
+inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm . fmap(not) . inQTreeCell) (a,(b,c)) 
                                   else ((pintaCell True b c) . qt2bm . inQTreeCell) (a,(b,c))
 
 outlineAux :: QTree Bool -> Matrix Bool
