@@ -1082,13 +1082,13 @@ recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, 
 recQTree f = baseQTree id f 
 
 cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
-cataQTree f = f . (recQTree (cataQTree f)) . outQTree
+cataQTree g = g . (recQTree (cataQTree g)) . outQTree
 
 anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
-anaQTree g = inQTree .(recQTree (anaQTree g)) . g
+anaQTree f = inQTree .(recQTree (anaQTree f)) . f
 
 hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
-hyloQTree f g = cataQTree f . anaQTree g
+hyloQTree g f = cataQTree g . anaQTree f
 
 instance Functor QTree where
     fmap f = cataQTree (inQTree . baseQTree f id)
