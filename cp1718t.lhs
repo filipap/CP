@@ -1209,6 +1209,46 @@ flatTotalRev (a,b,c,d) = ((a,b),(c,d))
 
 \subsection*{Problema 4}
 
+\par Para a resolução deste problema tivemos como base o anamorfismo e o catamorfismo de FTree \\
+\par {\bf Anamorfismo de FTree:}
+\begin{eqnarray*}
+\xymatrix@@C=1cm{
+    |A|
+           \ar[d]_-{|anaFTree f|}
+           \ar[r]^-{|f|}
+&
+    |C + (B >< (A >< A))|
+           \ar[d]^{|id + (id >< (anaFTree f >< anaFTree f))|}
+\\
+    |FTree B C|
+&
+    |C + (B >< (FTree B C >< FTree B C))|
+           \ar[l]^-{|inFTree|}
+\\
+\\
+}
+\end{eqnarray*}
+
+\par {\bf Catamorfismo de FTree:}
+
+\begin{eqnarray*}
+\xymatrix@@C=1cm{
+    |FTree B C|
+           \ar[d]_-{|cataFTree g|}
+           \ar[r]^-{|outFTree|}
+&
+    |C + (B >< (FTree B C >< FTree B C))|
+           \ar[d]^{|id + (id >< (cataFTree g >< cataFTree g))|}
+\\
+    |A|
+&
+    |C + (B >< (A >< A))|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+
+\par definindo-se assim as seguintes funções
+
 \begin{code}
 inFTreeUnit :: b -> FTree a b
 inFTreeUnit b = Unit b
@@ -1233,6 +1273,16 @@ hyloFTree f g = cataFTree f . anaFTree g
 instance Bifunctor FTree where
     bimap f g = cataFTree (inFTree . baseFTree f g id)
 
+\end{code}
+\maketitle {\bf generatePTree}    
+\par Para a resolução desta questão definiu-se uma função auxiliar (\verb generateFTree) que, combinada com o anamorfismo da FTree, gera uma PTree que 
+contém as iterações de uma árvore de pitágoras cujo valor de lado decresce com uma escala de $\sqrt{2}/2$ por iteração.\\
+A função auxiliar \verb generateFTree utiliza dois inteiros como argumentos, um não é alterado e guarda o número de iterações iniciais pretendidas e outro 
+é sempre decrementado e guarda a iteração atual até chegar a zero. Esses dois argumentos são usados em conjunto na função para obter as vezes que é necessário 
+aplicar a escala ao valor inicial de lado dependendo da iteração.\\
+A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n (n representa o inteiro que não é alterado) e \verb n. 
+\begin{code}
+
 generatePTree n = anaFTree (generateFTree n) n
 
 generateFTree :: Int -> Int -> Either Square (Square, (Int, Int))
@@ -1244,8 +1294,6 @@ generateFTree nInicial n = if (n==0) then i1 (100*(sqrt(2)/2)^(nInicial))
 wind :: Int -> IO ()
 wind i = display window white (pictures(drawPTree(generatePTree i)))
 
-
-
 drawPTree = cataFTree(either (return . square) (drawAux))
 
 drawAux :: (Square, ([Picture], [Picture])) -> [Picture]
@@ -1254,7 +1302,6 @@ drawAux (c,(a,b)) = square c : (fmap (rt c ) a) ++ (fmap (rt' c) b)
 
 rt = (rotate 45 .) . aap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
 rt' = (rotate (-45) .) . aap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
-
 \end{code}
 
 \subsection*{Problema 5}
