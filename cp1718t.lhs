@@ -106,7 +106,7 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 67
+\textbf{Grupo} nr. & 62
 \\\hline
 a81451 & Alexandre Rodrigues
 \\
@@ -388,7 +388,14 @@ data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a)
 \end{subfigure}
 \begin{subfigure}{0.7\textwidth}
 \begin{verbatim}
-Block (Cell 0 4 4) (Block (Cell 0 2 2) (Cell 0 2 2) (Cell 1 2 2) (Block (Cell 1 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1))) (Cell 1 4 4) (Block (Cell 1 2 2) (Cell 0 2 2) (Cell 0 2 2) (Block (Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 1 1 1)))
+Block
+(Cell 0 4 4) (Block
+(Cell 0 2 2) (Cell 0 2 2) (Cell 1 2 2) (Block
+(Cell 1 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1)))
+(Cell 1 4 4)
+(Block
+(Cell 1 2 2) (Cell 0 2 2) (Cell 0 2 2) (Block
+(Cell 0 1 1) (Cell 0 1 1) (Cell 0 1 1) (Cell 1 1 1)))
 \end{verbatim}
 \caption{Quadtree de exemplo |qt|.}
 \label{fig:qt}
@@ -1106,6 +1113,8 @@ myfunction (x,(y,(z,w))) = (z,(x,(w,y)))
 
 rotateAux :: Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (a, (a, (a, a)))
 rotateAux =  id -|- myfunction
+
+
 --função principal--
 rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
 \end{code}
@@ -1116,6 +1125,8 @@ rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
 --função auxiliar--
 scaleAux :: Int -> (Int,Int) -> (Int,Int)
 scaleAux n (a,b) = (n*a,n*b)
+
+
 --função principal--
 scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)
 \end{code}
@@ -1126,6 +1137,8 @@ scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)
 --função auxiliar--
 changeColor :: PixelRGBA8 -> PixelRGBA8
 changeColor (PixelRGBA8 x y z w) = PixelRGBA8 (255-x)(255-y)(255-z)(255-w)
+
+
 --função principal--
 invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 \end{code}
@@ -1145,6 +1158,8 @@ cutQTree q = Cell (celuralize q) ((p1 . sizeQTree) q) ((p2 . sizeQTree) q)
 compressQTreeAux :: Int -> QTree a -> QTree a
 compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))
                                         else cutQTree 
+
+
 --função principal--
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q 
 \end{code}
@@ -1172,6 +1187,8 @@ outlineAux = (cataQTree(either f g))
                   where 
                    f (x,(y,z))= inQTreeAdapted (x,(y,z))
                    g (a,(b,(c,d))) = joinBlocks(a,b,c,d)   
+
+
 --função principal--
 outlineQTree f = (outlineAux) . (fmap (not . f))  
 
@@ -1242,22 +1259,40 @@ rt' = (rotate (-45) .) . aap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) ((
 
 \subsection*{Problema 5}
 
+\par Para a resolução deste problema foi necessário analisar o tipo de dados do mónade que 
+vamos instanciar (neste caso é do tipo \verb Bag \ \verb a ).\\
+Então, a definição de |muB| foi feita em 3 passos:
+\begin{itemize}
+  \item obtenção da lista de bags que estão dentro da bag principal;
+  \item obtenção do conteúdo de cada bag pertencente à lista para posterior concatenação;
+  \item transformação em bag. 
+\end{itemize}       
 \begin{code}
------ funções auxiliares  -----------
---total de cada Bag--
+muB q = B ((concat . fmap(unB.p1) . unB) q) 
+\end{code}
+\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag  
+\begin{code}
+singletonbag b = (B [(b,1)])
+\end{code}
+\par Para definir a função dist definiram-se 2 funções auxiliares:
+\begin{itemize}
+  \item \verb totalBag  que devolve o número de berlindes do saco;
+  \item \verb prob  que dado o número de berlindes do saco e o saco devolve a distribuição 
+  finalizada recorrendo ao fmap de listas.
+\end{itemize}  
+\begin{code}
 totalBag :: Bag Marble -> Int
 totalBag = p2 . head . unB . consolidate . (fmap (!))
---probabilidade de cada cor--
-prob :: Int -> [(a,Int)] -> [(a,ProbRep)]
-prob  n [] = []
-prob  n ((a,b):t) = conc([((a),(fromIntegral b/ fromIntegral n))], (prob n t))
- 
---concBag :: [Bag a] -> Bag a 
---concBag (h:t) = B (conc(h,concBag t))  
 
-singletonbag b = return  b
-muB q = undefined --Control.Monad.join q 
-dist b = filterD (oneOf [Green,Red,Pink,Blue,White])  (D (prob (totalBag b) (unB b)))
+f :: Int -> (a,Int) -> (a,ProbRep)
+f n (x,y) = (x,(fromIntegral y/ fromIntegral n))
+
+prob :: Int -> Bag a -> Dist a
+prob n l = D (fmap (f n) (unB l))
+\end{code}
+\par Assim a função dist resume-se à invocação da função \verb prob 
+\begin{code}
+dist b = (prob (totalBag b) b)  
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
