@@ -977,6 +977,28 @@ alterados os nomes ou tipos das funções dadas, mas pode ser adicionado texto e
 outras funções auxiliares que sejam necessárias.
 
 \subsection*{Problema 1}
+\par Para a resolução deste problema tivemos como base o hilomorfismo de Blockchain\\
+
+\par {\bf Anamorfismo de Blockchain:}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |A*|
+           \ar[d]_-{|anaBlockchain f|}
+           \ar[r]^-{|f|}
+&
+    |1 + (A >< A*)|
+           \ar[d]^{|id + (id >< anaBlockchain f)|}
+\\
+    |Blockchain|
+&
+    |Block + (Block >< Blockchain)|
+           \ar[l]^-{|inBlockchain|}
+\\
+\\
+}
+\end{eqnarray*}
+
 
 \par {\bf Catamorfismo de Blockchain:}
 
@@ -985,35 +1007,22 @@ outras funções auxiliares que sejam necessárias.
     Blockchain
            \ar[d]_-{|cataBlockchain g|}
 &
-    |Block + Block >< Blockchain|
+    |Block + (Block >< Blockchain)|
            \ar[d]^{|id + id >< cataBlockchain g|}
            \ar[l]_-{|inBlockchain|}
 \\
-     A^*
+     |A*|
 &
-     |1 + A ><| A^*
+     |1 + (A >< A*)|
            \ar[l]^-{|g|}
-}
-\end{eqnarray*}
-
-\par {\bf Anamorfismo de Blockchain:}
-
-\begin{eqnarray*}
-\xymatrix@@C=2cm{
-    Blockchain
-        \ar[r]^-{|outBlockchain|}
-&
-    |Block + Block >< Blockchain|
 \\
-     A^*
-        \ar[u]^-{|anaBlockchain g|}
-        \ar[r]_-{|g|}
-&
-     |1 + A ><| A^*
-        \ar[u]_-{|id + id >< anaBlockchain g|}
+\\
+\\
+\\
 }
 \end{eqnarray*}
 
+\par definindo-se assim as seguintes funções
 \begin{code}
 inBlockchain = either (Bc) (Bcs)
 outBlockchain (Bc b) = i1(b)
@@ -1023,7 +1032,6 @@ cataBlockchain g = g . (recBlockchain (cataBlockchain g)) . outBlockchain
 anaBlockchain g = inBlockchain . (recBlockchain(anaBlockchain g)) . g
 hyloBlockchain c a = cataBlockchain c . anaBlockchain a
 \end{code}
-
 \maketitle {\bf allTransactions}
 \par Utiliza um catamorfismo cujo caso base é a lista de transações e a recursividade concatena a lista do bloco com a lista resultante.
 
@@ -1061,13 +1069,13 @@ b2l b = (concat . (map t2l) . p2 . p2) b
 t2l :: Transaction -> Ledger
 t2l (origin,(value,destination)) = [(origin, -value),(destination,value)]
 \end{code}
-
-\maketitle {\bf ledger}
+\maketitle {\bf isValidMagicNr}
 \par Compara a length da Blockchain com a length do resultado de um \verb nub .
 \begin{code}
 isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(either (return . p1) (uncurry(:) . (p1 >< id))))
 \end{code}
 
+\newpage
 \subsection*{Problema 2}
 
 \par Para a resolução deste problema tivemos como base o hilomorfismo de QTree \\
@@ -1148,7 +1156,10 @@ instance Functor QTree where
     fmap f = cataQTree (inQTree . baseQTree f id)
 
 \end{code}
-\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ \\
+
+\newpage
+\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ 
+
 \maketitle {\bf rotateQTree}
 \par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction.
 Também se definiu uma função (\verb rotateAux ) que dado o functor de QTree fazia apenas a rotação dos blocos mantendo intactas as células.\\
@@ -1210,8 +1221,10 @@ compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAu
 --função principal--
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
 \end{code}
+\newpage
+\begin{code}
+\end{code}
 \maketitle {\bf outlineQTree}
-\par
 \par Esta questão necessitou de dois passos para ser resolvida:
 \begin{itemize}
    \item aplicação da negação da função f a todas as células da àrvore
@@ -1305,7 +1318,7 @@ outlineQTree f = (outlineAux) . (fmap (not . f))
  l k 0 = k + 1
  )(
  l k (d+1) = (l k d) + 1
- )|
+ )|\\ \\ \\
 %
 \just\equiv{ def succ, 73 }
 %
@@ -1348,8 +1361,9 @@ outlineQTree f = (outlineAux) . (fmap (not . f))
 %
 \just\equiv{ def in }
 %
-|g . in = either (1) (mul . split (s) (g))|
+|g . in = either (1) (mul . split (s) (g))|\\ \\
 %
+\more
 %
  |lcbr(
  s 0 = 1
@@ -1586,7 +1600,7 @@ flatTotal ((a,b),(c,d)) = (a,b,c,d)
 flatTotalRev :: (a,b,c,d) -> ((a,b),(c,d))
 flatTotalRev (a,b,c,d) = ((a,b),(c,d))
 \end{code}
-
+\newpage
 \subsection*{Problema 4}
 
 \par Para a resolução deste problema tivemos como base o anamorfismo e o catamorfismo de FTree \\
@@ -1654,13 +1668,16 @@ instance Bifunctor FTree where
     bimap f g = cataFTree (inFTree . baseFTree f g id)
 
 \end{code}
+\newpage
+\begin{code}
+\end{code}
 \maketitle {\bf generatePTree}
 \par Para a resolução desta questão definiu-se uma função auxiliar (\verb generateFTree) que, combinada com o anamorfismo da FTree, gera uma PTree que
 contém as iterações de uma árvore de pitágoras cujo valor de lado decresce com uma escala de $\sqrt{2}/2$ por iteração.\\
 A função auxiliar \verb generateFTree utiliza dois inteiros como argumentos, um não é alterado e guarda o número de iterações iniciais pretendidas e outro
 é sempre decrementado e guarda a iteração atual até chegar a zero. Esses dois argumentos são usados em conjunto na função para obter as vezes que é necessário
 aplicar a escala ao valor inicial de lado dependendo da iteração.\\
-A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n (n representa o inteiro que não é alterado) e \verb n .
+A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n \\(n representa o inteiro que não é alterado) e \verb n .
 
 \begin{code}
 
@@ -1673,7 +1690,6 @@ generateFTree nInicial n = if (n==0) then i1 (100*(sqrt(2)/2)^(nInicial))
 
 
 \end{code}
-
 \maketitle {\bf drawPtree}
 \par Efetua \verb fmap  \verb rt  rodando todos os elementos subconsequentes de [Picture]. A função \verb rt  roda e translada uma Picture, juntamente com \verb rt' que faz o mesmo salvo dois sinais negativos.
 \begin{code}
@@ -1691,6 +1707,7 @@ rt = (rotate 45 .) . aap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2
 rt' = (rotate (-45) .) . aap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
 \end{code}
 
+\newpage
 \subsection*{Problema 5}
 
 \par Para a resolução deste problema foi necessário analisar o tipo de dados do mónade que
@@ -1704,16 +1721,21 @@ Então, a definição de |muB| foi feita em 3 passos:
 \begin{code}
 muB q = B ((concat . fmap(unB.p1) . unB) q)
 \end{code}
-\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag
+\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag :
+
 \begin{code}
 singletonbag b = (B [(b,1)])
 \end{code}
+
 \par Para definir a função dist definiram-se 2 funções auxiliares:
 \begin{itemize}
+
   \item \verb totalBag  que devolve o número de berlindes do saco;
   \item \verb prob  que dado o número de berlindes do saco e o saco devolve a distribuição
   finalizada recorrendo ao fmap de listas.
+
 \end{itemize}
+
 \begin{code}
 totalBag :: Bag Marble -> Int
 totalBag = p2 . head . unB . consolidate . (fmap (!))
@@ -1723,53 +1745,15 @@ f n (x,y) = (x,(fromIntegral y/ fromIntegral n))
 
 prob :: Int -> Bag a -> Dist a
 prob n l = D (fmap (f n) (unB l))
+
 \end{code}
-\par Assim a função dist resume-se à invocação da função \verb prob
+
+\par Assim a função dist resume-se à invocação da função \verb prob :
+
 \begin{code}
 dist b = (prob (totalBag b) b)
 \end{code}
 
-\section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
-Estudar o texto fonte deste trabalho para obter o efeito:\footnote{Exemplos tirados de \cite{Ol18}.}
-\begin{eqnarray*}
-\start
-	|id = split f g|
-%
-\just\equiv{ universal property }
-%
-        |lcbr(
-		p1 . id = f
-	)(
-		p2 . id = g
-	)|
-%
-\just\equiv{ identity }
-%
-        |lcbr(
-		p1 = f
-	)(
-		p2 = g
-	)|
-\qed
-\end{eqnarray*}
-
-Os diagramas podem ser produzidos recorrendo à \emph{package} \LaTeX\
-\href{https://ctan.org/pkg/xymatrix}{xymatrix}, por exemplo:
-\begin{eqnarray*}
-\xymatrix@@C=2cm{
-    |Nat0|
-           \ar[d]_-{|cataNat g|}
-&
-    |1 + Nat0|
-           \ar[d]^{|id + (cataNat g)|}
-           \ar[l]_-{|inNat|}
-\\
-     |B|
-&
-     |1 + B|
-           \ar[l]^-{|g|}
-}
-\end{eqnarray*}
 
 %----------------- Fim do anexo com soluções dos alunos ------------------------%
 
