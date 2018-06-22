@@ -1159,9 +1159,10 @@ instance Functor QTree where
 
 \newpage
 \par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ 
-
+\begin{code}
+\end{code}
 \maketitle {\bf rotateQTree}
-\par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction.
+\par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction .
 Também se definiu uma função (\verb rotateAux ) que dado o functor de QTree fazia apenas a rotação dos blocos mantendo intactas as células.\\
 Fica a faltar a troca dos tamanhos das células que é feito na função principal.
 \begin{code}
@@ -1221,6 +1222,7 @@ compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAu
 --função principal--
 compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
 \end{code}
+
 \newpage
 \begin{code}
 \end{code}
@@ -1236,7 +1238,8 @@ compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
 \begin{code}
 --funções auxiliares--
 pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
-pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
+pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r)
+                                                .(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
 
 inQTreeAdapted :: (Bool,(Int,Int)) -> Matrix Bool
 inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm . fmap(not) . inQTreeCell) (a,(b,c))
@@ -1606,7 +1609,7 @@ flatTotalRev (a,b,c,d) = ((a,b),(c,d))
 \par Para a resolução deste problema tivemos como base o anamorfismo e o catamorfismo de FTree \\
 \par {\bf Anamorfismo de FTree:}
 \begin{eqnarray*}
-\xymatrix@@C=1cm{
+\xymatrix@@C=2cm{
     |A|
            \ar[d]_-{|anaFTree f|}
            \ar[r]^-{|f|}
@@ -1626,7 +1629,7 @@ flatTotalRev (a,b,c,d) = ((a,b),(c,d))
 \par {\bf Catamorfismo de FTree:}
 
 \begin{eqnarray*}
-\xymatrix@@C=1cm{
+\xymatrix@@C=2cm{
     |FTree B C|
            \ar[d]_-{|cataFTree g|}
            \ar[r]^-{|outFTree|}
