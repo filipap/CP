@@ -1507,7 +1507,7 @@ outlineQTree f = (outlineAux) . (fmap (not . f))
 |k = either (1) (succ . p2)|
 %
 \end{eqnarray*}
-\par Fica, assim, com a lei de \verb Fokkinga \verb (50)
+\par Fica, assim, com a lei de \verb Fokkinga \verb (50) .
 
 \begin{eqnarray*}
 \start
@@ -1672,14 +1672,20 @@ generateFTree nInicial n = if (n==0) then i1 (100*(sqrt(2)/2)^(nInicial))
 
 
 
+\end{code}
+
+\maketitle {\bf drawPtree}
+\par Efetua \verb fmap  \verb rt  rodando todos os elementos subconsequentes de [Picture]. A função \verb rt  roda e translada uma Picture, juntamente com \verb rt' que faz o mesmo salvo dois sinais negativos.
+\begin{code}
 wind :: Int -> IO ()
-wind i = display window white (pictures(drawPTree(generatePTree i)))
+wind = display window white . pictures . drawPTree . generatePTree
+
 
 drawPTree = cataFTree(either (return . square) (drawAux))
 
 drawAux :: (Square, ([Picture], [Picture])) -> [Picture]
 drawAux (c,(a:[],b:[])) = [(square c),a,b]
-drawAux (c,(a,b)) = square c : (fmap (rt c ) a) ++ (fmap (rt' c) b)
+drawAux (c,(a,b)) = square c : (fmap (rt c) a) ++ (fmap (rt' c) b)
 
 rt = (rotate 45 .) . aap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
 rt' = (rotate (-45) .) . aap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
@@ -1698,8 +1704,7 @@ Então, a definição de |muB| foi feita em 3 passos:
 \begin{code}
 muB q = B ((concat . fmap(unB.p1) . unB) q)
 \end{code}
-\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag .
-
+\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag
 \begin{code}
 singletonbag b = (B [(b,1)])
 \end{code}
@@ -1719,7 +1724,7 @@ f n (x,y) = (x,(fromIntegral y/ fromIntegral n))
 prob :: Int -> Bag a -> Dist a
 prob n l = D (fmap (f n) (unB l))
 \end{code}
-\par Assim a função dist resume-se à invocação da função \verb prob .
+\par Assim a função dist resume-se à invocação da função \verb prob
 \begin{code}
 dist b = (prob (totalBag b) b)
 \end{code}
