@@ -978,6 +978,42 @@ outras funções auxiliares que sejam necessárias.
 
 \subsection*{Problema 1}
 
+\par {\bf Catamorfismo de Blockchain:}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    Blockchain
+           \ar[d]_-{|cataBlockchain g|}
+&
+    |Block + Block >< Blockchain|
+           \ar[d]^{|id + id >< cataBlockchain g|}
+           \ar[l]_-{|inBlockchain|}
+\\
+     A^*
+&
+     |1 + A ><| A^*
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+
+\par {\bf Anamorfismo de Blockchain:}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    Blockchain
+        \ar[r]^-{|outBlockchain|}
+&
+    |Block + Block >< Blockchain|
+\\
+     A^*
+        \ar[u]^-{|anaBlockchain g|}
+        \ar[r]_-{|g|}
+&
+     |1 + A ><| A^*
+        \ar[u]_-{|id + id >< anaBlockchain g|}
+}
+\end{eqnarray*}
+
 \begin{code}
 inBlockchain = either (Bc) (Bcs)
 outBlockchain (Bc b) = i1(b)
@@ -986,16 +1022,23 @@ recBlockchain f = id -|- id><(f)
 cataBlockchain g = g . (recBlockchain (cataBlockchain g)) . outBlockchain
 anaBlockchain g = inBlockchain . (recBlockchain(anaBlockchain g)) . g
 hyloBlockchain c a = cataBlockchain c . anaBlockchain a
---Exercio 1
-allTransactions = cataBlockchain(either (p2 . p2) (uncurry (++) . ((p2 . p2) >< id)))
+\end{code}
 
--- Catamorfismo transforma a blockchain numa ledger com membros repetidos
--- O ledge nub junta todas as entidades iguais
+\maketitle {\bf allTransactions}
+\par Utiliza um catamorfismo cujo caso base é a lista de transações e a recursividade concatena a lista do bloco com a lista resultante.
+
+\begin{code}
+allTransactions = cataBlockchain(either (p2 . p2) (uncurry (++) . ((p2 . p2) >< id)))
+\end{code}
+\maketitle {\bf ledger}
+\par O catamorfismo transforma a Blockchain numa lista de Ledgers com elementos repetidos. De seguida o \verb ledgeNub  utiliza um \verb cataList  para unir todas os elementos repetidos.
+\par O \verb b2l  retira a Ledger de um Block com o \verb t2l  que retira a Ledger de uma lista de transações.
+\begin{code}
+type Ledge = (Entity,Value)
+
+
 ledger = ledgeNub . cataBlockchain (either (b2l) (uncurry (++) . (b2l >< id)))
 
---Soma o valor de todas as entidades com o mesmo nome
-
-type Ledge = (Entity,Value)
 
 ledgeNub = cataList (either (const([])) (uncurry(aux)))
     where
@@ -1013,11 +1056,15 @@ ledgeNub = cataList (either (const([])) (uncurry(aux)))
 
 b2l :: Block -> Ledger
 b2l b = (concat . (map t2l) . p2 . p2) b
---Extrai a ledger de cada Transaction
+
+
 t2l :: Transaction -> Ledger
 t2l (origin,(value,destination)) = [(origin, -value),(destination,value)]
+\end{code}
 
---Ex3 se o comprimento da chain for /= do numero de MagicNo diferentes entao ha repetidos
+\maketitle {\bf ledger}
+\par Compara a length da Blockchain com a length do resultado de um \verb nub .
+\begin{code}
 isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(either (return . p1) (uncurry(:) . (p1 >< id))))
 \end{code}
 
@@ -1460,7 +1507,7 @@ outlineQTree f = (outlineAux) . (fmap (not . f))
 |k = either (1) (succ . p2)|
 %
 \end{eqnarray*}
-\par Fica, assim, com a lei de \verb Fokkinga \verb (50) 
+\par Fica, assim, com a lei de \verb Fokkinga \verb (50)
 
 \begin{eqnarray*}
 \start
