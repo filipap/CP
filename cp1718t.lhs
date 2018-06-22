@@ -1195,224 +1195,336 @@ outlineQTree f = (outlineAux) . (fmap (not . f))
 \end{code}
 
 \subsection*{Problema 3}
-
 \par Para a resolução desta questão foi necessário simplificar as expressões
-\begin{spec}
-f k 0 = 1
-f k (d+1) = (l k d) * f k d
-
-.==. {def succ, def mul, 73}
-
-f k . 0 = 1
-f k . succ = mul (l k, f k)
-
-.==. {27, 20}
-
-f k . [0, succ] = [1, mul (l k, f k)]
-
-.==. {def in}
-
-f k . in = [1, mul (l k, f k)]
-
-
-
-l k 0 = k + 1
-l k (d+1) = (l k d) + 1
-
-.==. {def succ, 73}
-
-l k . 0 = succ . k
-l k . succ = succ . l k
-
-.==. {27, 20}
-
-l k . [0, succ] = [succ . k, succ . l k]
-
-.==. {def in}
-
-l k . in = [succ . k, succ . l k]
-\end{spec}
-e
-\begin{spec}
-g 0 = 1
-g (d+1) = (s d) * g d
-
-.==. {def succ, def mul, 73}
-
-g . 0 = 1
-g . succ = mul (s, g)
-
-.==. {27, 20}
-
-g . [0, succ] = [1, mul (s, g)]
-
-.==. {def in}
-
-g . in = [1, mul (s, g)]
-
-
-
-s 0 = 1
-s (d+1) = (s d) + 1
-
-.==. {def succ, 73}
-
-s . 0 = 1
-s . succ = succ . s
-
-.==. {27, 20}
-
-s . [0, succ] = [1, succ . s]
-
-.==. {def in}
-
-s . in = [1, succ . s]
-\end{spec}
+\begin{eqnarray*}
+\start
+%
+  |lcbr(
+  f k 0 = 1
+  )(
+  f k (d+1) = (l k d) * f k d
+  )|
+\more
+%
+  |lcbr(
+  l k 0 = k + 1
+  )(
+  l k (d+1) = (l k d) + 1
+  )|
+\more
+%
+  |lcbr(
+  s 0 = 1
+  )(
+  s (d+1) = (s d) + 1
+  )|
+\more
+%
+  |lcbr(
+  g 0 = 1
+  )(
+  g (d+1) = (s d) * g d
+  )|\\
+  %
+\end{eqnarray*}
+\par Então:
+\begin{eqnarray*}
+\start
+%
+  |lcbr(
+  f k 0 = 1
+  )(
+  f k (d+1) = (l k d) * f k d
+  )|
+%
+\more
+\just\equiv{ def succ, def mul, 73 }
+%
+  |lcbr(
+  f k . 0 = 1
+  )(
+  f k . succ = mul . split(l k) (f k)
+  )|
+%
+\just={ 27, 20 }
+%
+|f k . either (0) (succ) = either (1) (mul (l k, f k))|
+%
+\just\equiv{ def in }
+%
+|f k . in = either (1) (mul . split(l k) (f k))|\\
+\more
+ |lcbr(
+ l k 0 = k + 1
+ )(
+ l k (d+1) = (l k d) + 1
+ )|
+%
+\just\equiv{ def succ, 73 }
+% 
+ |lcbr(
+ l k . 0 = succ . k
+ )(
+ l k . succ = succ . l k
+ )|
+%
+\just\equiv{ 27, 20 }
+%
+|l k . either (0) (succ) = either (succ . k) (succ . l k)|
+%
+\just\equiv{ def in }
+%
+|l k . in = either (succ . k) (succ . l k)|
+%
+\end{eqnarray*}
+\par e
+\begin{eqnarray*}
+\start
+% 
+ |lcbr(
+ g 0 = 1
+ )(
+ g (d+1) = (s d) * g d
+ )|
+%
+\just\equiv{ def succ, def mul, 73 }
+%
+ |lcbr(
+ g . 0 = 1
+ )(
+ g . succ = mul (s, g)
+ )|
+%
+\just\equiv{ 27, 20 }
+%
+|g . either (0) (succ) = either (1) (mul . split (s) (g))|
+%
+\just\equiv{ def in }
+%
+|g . in = either (1) (mul . split (s) (g))|
+%
+%
+ |lcbr(
+ s 0 = 1
+ )(
+ s (d+1) = (s d) + 1
+ )|
+%
+\just\equiv{ def succ, 73 }
+% 
+ |lcbr(
+ s . 0 = 1
+ )(
+ s . succ = succ . s
+ )|
+%
+\just\equiv{ 27, 20 }
+%
+|s . either (0) (succ) = either (1) (succ . s)|
+%
+\just\equiv{ def in }
+%
+|s . in = either (1) (succ . s)|
+%
+\end{eqnarray*}
 \par Após isso foi usada a lei de \verb Fokkinga \verb (50) com o functor dos naturais
-\begin{spec}
-f k . in = h . id + (f k ,l k)
-l k . in = k . id + (f k ,l k)
-\end{spec}
-e
-\begin{spec}
-g . in = h . id + (g, s)
-s . in = k . id + (g, s)
-\end{spec}
-\par Neste momento ainda não se sabia qual era o \verb h e o \verb k. Para isso foram usadas as igualdades anteriormente obtidas 
-\begin{spec}
-h . id + (f k ,l k) = [1, mul (l k, f k)]
+\begin{eqnarray*}
+\start
+%
+|f k . in = h . id + split(f k) (l k)|
+\more
+|l k . in = k . id + split(f k) (l k)|
+%
+\end{eqnarray*}
+\par e
+\begin{eqnarray*}
+\start
+%
+|g . in = h . id + split (g) (s)|
+\more
+|s . in = k . id + split (g) (s)|
+%
 
-.==. {18, 22}
-
-[h . i1 . id, h . i2 . (f k, l k)] = [1, mul (l k, f k)]
-
-.==. {27}
-
-h . i1 = 1
-h . i2 . (f k, l k) = mul (l k, f k)
-
-.==. {73}
-
-h . i1 = 1
-h . i2 = mul
-
-.==. {17}
-
-h = [1, mul]
-
-
-
-k . id + (f k ,l k) = [succ . k, succ . l k]
-
-.==. {18, 22}
-
-[k . i1 . id, k . i2 . (f k, l k)] = [succ . k, succ . l k]
-
-.==. {27}
-
-k . i1 = succ . k
-k . i2 . (f k, l k) = succ . l k
-
-.==. {7, 73}
-
-k . i1 = succ . k
-k . i2 = succ . p2
-
-.==. {17}
-
-k = [succ . k, succ . p2]
-\end{spec}
-e
-\begin{spec}
-h . id + (g ,s) = [1, mul (s, g)]
-
-.==. {18, 22}
-
-[h . i1 . id, h . i2 . (g, s)] = [1, mul (s, g)]
-
-.==. {27}
-
-h . i1 = 1
-h . i2 . (g, s) = mul (s, g)
-
-.==. {73}
-
-h . i1 = 1
-h . i2 = mul
-
-.==. {17}
-
-h = [1, mul]
-
-
-
-k . id + (g ,s) = [1, succ . s]
-
-.==. {18, 22}
-
-[k . i1 . id, k . i2 . (g, s)] = [1, succ . s]
-
-.==. {27}
-
-k . i1 = 1
-k . i2 . (g, s) = succ . s
-
-.==. {7, 73}
-
-k . i1 = 1
-k . i2 = succ . p2
-
-.==. {17}
-
-k = [1, succ . p2]
-\end{spec}
+\end{eqnarray*}
+\par Neste momento ainda não se sabia qual era o \verb h  e o \verb k. Para isso foram usadas as igualdades anteriormente obtidas 
+\begin{eqnarray*}
+\start
+%
+|h . id + (f k ,l k) = either (1) (mul . split(l k) (f k))|
+%
+\just\equiv{ 18, 22 }
+%
+|either (h . i1 . id) (h . i2 . split (f k) (l k)) = either (1) (mul . split(l k) (f k))|
+%
+\just\equiv{ 27 }
+% 
+ |lcbr(
+ h . i1 = 1
+ )(
+ h . i2 . split(l k) (f k) = mul . split(l k) (f k)
+ )|
+%
+\just\equiv{ 73 }
+% 
+ |lcbr(
+ h . i1 = 1
+ )(
+ h . i2 = mul
+ )|
+%
+\just\equiv{ 17 }
+%
+|h = either (1, mul)|
+\more
+|k . id + (f k ,l k) = either (succ . k) (succ . l k)|
+%
+\just\equiv{ 18, 22 }
+%
+|either (k . i1 . id) (k . i2 . split (f k) (l k)) = either (succ . k) (succ . l k)|
+%
+\just\equiv{ 27 }
+% 
+ |lcbr(
+ k . i1 = succ . k
+ )(
+ k . i2 . split (f k) (l k) = succ . l k
+ )|
+%
+\just\equiv{ 7, 73 }
+% 
+ |lcbr(
+ k . i1 = succ . k
+ )(
+ k . i2 = succ . p2
+ )|
+%
+\just\equiv{ 17 }
+%
+|k = either (succ . k) (succ . p2)|
+%
+\end{eqnarray*}
+\par e
+\begin{eqnarray*}
+\start
+%
+|h . id + (g ,s) = either (1) (mul (s)(g))|
+%
+\just\equiv{ 18, 22 }
+%
+|either (h . i1 . id) (h . i2 . split (g) (s)) = either (1) (mul . split (s)(g))|
+%
+\just\equiv{ 27 }
+% 
+ |lcbr(
+ h . i1 = 1
+ )(
+ h . i2 . split(g) (s) = mul . split (s) (g)
+ )|
+%
+\just\equiv{ 73 }
+% 
+ |lcbr(
+ h . i1 = 1
+ )(
+ h . i2 = mul
+ )|
+%
+\just\equiv{ 17 }
+%
+|h = either (1) (mul)|
+\more
+|k . id + (g ,s) = either (1) (succ . s)|
+%
+\just\equiv{18, 22}
+%
+|either (k . i1 . id) (k . i2 . split (g) (s)) = either (1) (succ . s)|
+%
+\just\equiv{ 27 }
+%
+ |lcbr(
+ k . i1 = 1
+ )(
+ k . i2 . split(g) (s) = succ . s
+ )|
+%
+\just\equiv{ 7, 73 }
+%
+ |lcbr(
+ k . i1 = 1
+ )(
+ k . i2 = succ . p2
+ )|
+%
+\just\equiv{ 17 }
+%
+|k = either (1) (succ . p2)|
+%
+\end{eqnarray*}
 \par Fica, assim, com a lei de \verb Fokkinga \verb (50) 
-\begin{spec}
-f k . in = [1, mul] . id + (f k ,l k)
-l k . in = [succ . k, succ . p2] . id + (f k ,l k)
-
-.==. {50}
-
-(f k, l k) = (| ([1, mul], [succ . k, succ . p2]) |)
-\end{spec}
-e
-\begin{spec}
-g . in = [1, mul] . id + (g, s)
-s . in = [1, succ . p2] . id + (g, s)
-
-.==. {50}
-
-(g, s) = (| ([1, mul], [1, succ . p2]) |)
-\end{spec}
+\begin{eqnarray*}
+\start
+%
+|f k . in = either (1) (mul) . id + split (f k) (l k)|
+\more
+|l k . in = either (succ . k) (succ . p2) . id + split(f k) (l k)|
+%
+\just\equiv{ 50 }
+%
+|split (f k) (l k) = cataNat(split (either (1) (mul)) (either (succ . k) (succ . p2)))|
+%
+\end{eqnarray*}
+\par e
+\begin{eqnarray*}
+\start
+%
+|g . in = either (1) (mul) . id + split (g) (s)|
+\more
+|s . in = either (1) (succ . p2) . id + split(g) (s)|
+%
+\just\equiv{ 50 }
+%
+|split g s = cataNat(split (either (1) (mul)) (either (1) (succ . p2)))|
+%
+\end{eqnarray*}
 \par Juntou-se depois os dois pares e simplificou-se através do uso da lei de Banana-split (51) e de outras leis
-\begin{spec}
-((f k, l k), (g, s)) = ( (| ([1, mul], [succ . k, succ . p2]) |), (| ([1, mul], [1, succ . p2]) |) )
-
-.==. {51}
-
-(| ([1, mul], [succ . k, succ . p2]) >< ([1, mul], [1, succ . p2]) . (id + p1, id + p2) |)
-
-.==. {7, 22}
-
-(| ( ([1, mul . p1], [succ . k, succ . p2 . p1]), ([1, mul . p2], [1, succ . p2 . p2]) ) |)
-
-.==. {28}
-
-(| ( [(1, succ . k), (mul . p1, succ . p2 . p1)], [(1, 1), (mul . p2, succ . p2 . p2)] ) |)
-
-.==. {28}
-
-(| [ ((1, succ . k), (1, 1)), ((mul . p1, succ . p2 . p1), (mul . p2, succ . p2 . p2)) ] |)
-\end{spec}
+\begin{eqnarray*}
+\start
+%
+|((f k, l k), (g, s)) = split (cataNat(split (either (1) (mul)) (either (succ . k) (succ . p2)))) (cataNat(split (either (1) (mul)) (either (1) (succ . p2))))|
+%
+\just\equiv{ 51 }
+%
+|cataNat(((either (1) (mul), either (succ . k) (succ . p2)) >< (either (1) (mul), either (1) (succ . p2))) . split (id + p1) (id + p2))|
+%
+\just\equiv{ 7, 22 }
+%
+|cataNat(split (either (1)  (mul . p1), either (succ . k) (succ . p2 . p1)) (either (1) (mul . p2), either (1) (succ . p2 . p2)))|
+%
+\just\equiv{ 28 }
+%
+|cataNat (split (either (1, succ . k) (mul . p1, succ . p2 . p1)) (either (1, 1) (mul . p2, succ . p2 . p2)))|
+%
+\just\equiv{ 28 }
+%
+|cataNat(split (either ((1, succ . k), (1, 1)) ((mul . p1, succ . p2 . p1))) (mul . p2, succ . p2 . p2))|
+%
+\end{eqnarray*}
 \par Como
-\begin{spec}
-for loop (base k) = (| [(base k), loop] |)
-\end{spec}
-, então obteve-se
-\begin{spec}
-base k = ((1, succ . k), (1, 1))
-loop = (mul, succ . p2) >< (mul, succ . p2)
-\end{spec}
+\begin{eqnarray*}
+\start
+|for loop (base k) = cataNat(either (base k) (loop))|
+%
+\end{eqnarray*}
+\par , então obteve-se
+\begin{eqnarray*}
+\start
+|base k = ((1, succ . k), (1, 1))|
+\more
+|loop = split (mul) (succ . p2) >< split (mul) (succ . p2)|
+%
+\qed
+\end{eqnarray*}
+
 \par Para colocar o tuplo de tuplos num 4-tuplo e vice-versa foram criadas as funções auxiliares \verb flatTotal e \verb flatTotalRev. \\
 Ficaram, assim, as funções construidas
 \begin{code}
