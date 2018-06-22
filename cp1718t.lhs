@@ -1498,15 +1498,15 @@ outlineQTree f = (outlineAux) . (fmap (not . f))
 %
 \just\equiv{ 7, 22 }
 %
-|cataNat(split (either (1)  (mul . p1), either (succ . k) (succ . p2 . p1)) (either (1) (mul . p2), either (1) (succ . p2 . p2)))|
+|cataNat(split (split (either (1)  (mul . p1)) (either (succ . k) (succ . p2 . p1))) (split (either (1) (mul . p2)) (either (1) (succ . p2 . p2))))|
 %
 \just\equiv{ 28 }
 %
-|cataNat (split (either (1, succ . k) (mul . p1, succ . p2 . p1)) (either (1, 1) (mul . p2, succ . p2 . p2)))|
+|cataNat (split (either (split 1 (succ . k)) (split (mul . p1) (succ . p2 . p1))) (either (split 1 1) (split (mul . p2) (succ . p2 . p2))))|
 %
 \just\equiv{ 28 }
 %
-|cataNat(split (either ((1, succ . k), (1, 1)) ((mul . p1, succ . p2 . p1))) (mul . p2, succ . p2 . p2))|
+|cataNat (either (split (split 1 (succ . k)) (split 1 1)) (split (split (mul . p1) (succ . p2 . p1)) (split (mul . p2) (succ . p2 . p2))))|
 %
 \end{eqnarray*}
 \par Como
