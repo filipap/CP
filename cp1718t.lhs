@@ -1086,7 +1086,7 @@ baseQTreeScale :: (d2 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))
 baseQTreeScale f g = (id><f) -|- (g><(g><(g><g)))
 
 recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-recQTree f = baseQTree id f 
+recQTree f = baseQTree id f
 
 cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
 cataQTree g = g . (recQTree (cataQTree g)) . outQTree
@@ -1101,11 +1101,11 @@ instance Functor QTree where
     fmap f = cataQTree (inQTree . baseQTree f id)
 
 \end{code}
-\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ \\  
-\maketitle {\bf rotateQTree}    
-\par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction. 
+\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ \\
+\maketitle {\bf rotateQTree}
+\par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction.
 Também se definiu uma função (\verb rotateAux ) que dado o functor de QTree fazia apenas a rotação dos blocos mantendo intactas as células.\\
-Fica a faltar a troca dos tamanhos das células que é feito na função principal.     
+Fica a faltar a troca dos tamanhos das células que é feito na função principal.
 \begin{code}
 --funções auxiliares--
 myfunction:: (a,(a,(a,a))) -> (a,(a,(a,a)))
@@ -1118,8 +1118,8 @@ rotateAux =  id -|- myfunction
 --função principal--
 rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
 \end{code}
-\maketitle {\bf scaleQTree} 
-\par  
+\maketitle {\bf scaleQTree}
+\par
 \par Para a resolução desta questão apenas se fez o catamorfismo da função \verb scaleAux a todas as células da àrvore
 \begin{code}
 --função auxiliar--
@@ -1131,7 +1131,7 @@ scaleAux n (a,b) = (n*a,n*b)
 scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)
 \end{code}
 \maketitle {\bf invertQTree}
-\par  
+\par
 \par Para a resolução desta questão apenas se fez o catamorfismo da função \verb changeColor a todas as células da àrvore
 \begin{code}
 --função auxiliar--
@@ -1143,8 +1143,8 @@ changeColor (PixelRGBA8 x y z w) = PixelRGBA8 (255-x)(255-y)(255-z)(255-w)
 invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
 \end{code}
 \maketitle {\bf compressQTree}
-\par  
-\par Para resolver esta questão recorreu-se a uma função auxiliar que cortava a QTree a uma determinada profundidade \verb compressQTreeAux . Enquanto não chegasse à profundidade de corte fazia a recursividade da função nos blocos. Quando se chegasse lá usava-se a função \verb cutQTree  que substituia os blocos por células com o tamanho (\verb sizeQTree)  do bloco respetivo.  
+\par
+\par Para resolver esta questão recorreu-se a uma função auxiliar que cortava a QTree a uma determinada profundidade \verb compressQTreeAux . Enquanto não chegasse à profundidade de corte fazia a recursividade da função nos blocos. Quando se chegasse lá usava-se a função \verb cutQTree  que substituia os blocos por células com o tamanho (\verb sizeQTree)  do bloco respetivo.
 
 \begin{code}
 --funções auxiliares--
@@ -1157,21 +1157,21 @@ cutQTree q = Cell (celuralize q) ((p1 . sizeQTree) q) ((p2 . sizeQTree) q)
 
 compressQTreeAux :: Int -> QTree a -> QTree a
 compressQTreeAux n = if (n>0) then cataQTree(inQTree . recQTree (compressQTreeAux (n-1)))
-                                        else cutQTree 
+                                        else cutQTree
 
 
 --função principal--
-compressQTree n q = compressQTreeAux ((depthQTree q) - n) q 
+compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
 \end{code}
 \maketitle {\bf outlineQTree}
-\par 
+\par
 \par Esta questão necessitou de dois passos para ser resolvida:
 \begin{itemize}
    \item aplicação da negação da função f a todas as células da àrvore
-   \item definição da função \verb outlineAux  que faz o catamorfismo de uma função f 
-   que dada uma célula do tipo Bool, caso ela fosse False, preenchia-se as bordas com 
-   True, caso contrário preenchia-se matriz a False, e uma função g que junta as submatrizes formadas. 
-\end{itemize} 
+   \item definição da função \verb outlineAux  que faz o catamorfismo de uma função f
+   que dada uma célula do tipo Bool, caso ela fosse False, preenchia-se as bordas com
+   True, caso contrário preenchia-se matriz a False, e uma função g que junta as submatrizes formadas.
+\end{itemize}
 
 \begin{code}
 --funções auxiliares--
@@ -1179,18 +1179,18 @@ pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
 pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r).(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
 
 inQTreeAdapted :: (Bool,(Int,Int)) -> Matrix Bool
-inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm . fmap(not) . inQTreeCell) (a,(b,c)) 
+inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm . fmap(not) . inQTreeCell) (a,(b,c))
                                   else ((pintaCell True b c) . qt2bm . inQTreeCell) (a,(b,c))
 
 outlineAux :: QTree Bool -> Matrix Bool
-outlineAux = (cataQTree(either f g))   
-                  where 
+outlineAux = (cataQTree(either f g))
+                  where
                    f (x,(y,z))= inQTreeAdapted (x,(y,z))
-                   g (a,(b,(c,d))) = joinBlocks(a,b,c,d)   
+                   g (a,(b,(c,d))) = joinBlocks(a,b,c,d)
 
 
 --função principal--
-outlineQTree f = (outlineAux) . (fmap (not . f))  
+outlineQTree f = (outlineAux) . (fmap (not . f))
 
 \end{code}
 
@@ -1278,7 +1278,7 @@ e
 g . in = h . id + (g, s)
 s . in = k . id + (g, s)
 \end{spec}
-\par Neste momento ainda não se sabia qual era o \verb h e o \verb k. Para isso foram usadas as igualdades anteriormente obtidas 
+\par Neste momento ainda não se sabia qual era o \verb h e o \verb k. Para isso foram usadas as igualdades anteriormente obtidas
 \begin{spec}
 h . id + (f k ,l k) = [1, mul (l k, f k)]
 
@@ -1366,7 +1366,7 @@ k . i2 = succ . p2
 
 k = [1, succ . p2]
 \end{spec}
-\par Fica, assim, com a lei de \verb Fokkinga \verb (50) 
+\par Fica, assim, com a lei de \verb Fokkinga \verb (50)
 \begin{spec}
 f k . in = [1, mul] . id + (f k ,l k)
 l k . in = [succ . k, succ . p2] . id + (f k ,l k)
@@ -1495,12 +1495,12 @@ instance Bifunctor FTree where
 
 \end{code}
 \maketitle {\bf generatePTree}
-\par Para a resolução desta questão definiu-se uma função auxiliar (\verb generateFTree) que, combinada com o anamorfismo da FTree, gera uma PTree que 
+\par Para a resolução desta questão definiu-se uma função auxiliar (\verb generateFTree) que, combinada com o anamorfismo da FTree, gera uma PTree que
 contém as iterações de uma árvore de pitágoras cujo valor de lado decresce com uma escala de $\sqrt{2}/2$ por iteração.\\
-A função auxiliar \verb generateFTree utiliza dois inteiros como argumentos, um não é alterado e guarda o número de iterações iniciais pretendidas e outro 
-é sempre decrementado e guarda a iteração atual até chegar a zero. Esses dois argumentos são usados em conjunto na função para obter as vezes que é necessário 
+A função auxiliar \verb generateFTree utiliza dois inteiros como argumentos, um não é alterado e guarda o número de iterações iniciais pretendidas e outro
+é sempre decrementado e guarda a iteração atual até chegar a zero. Esses dois argumentos são usados em conjunto na função para obter as vezes que é necessário
 aplicar a escala ao valor inicial de lado dependendo da iteração.\\
-A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n (n representa o inteiro que não é alterado) e \verb n. 
+A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n (n representa o inteiro que não é alterado) e \verb n.
 \begin{code}
 
 generatePTree n = anaFTree (generateFTree n) n
@@ -1526,27 +1526,27 @@ rt' = (rotate (-45) .) . aap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) ((
 
 \subsection*{Problema 5}
 
-\par Para a resolução deste problema foi necessário analisar o tipo de dados do mónade que 
+\par Para a resolução deste problema foi necessário analisar o tipo de dados do mónade que
 vamos instanciar (neste caso é do tipo \verb Bag \ \verb a ).\\
 Então, a definição de |muB| foi feita em 3 passos:
 \begin{itemize}
   \item obtenção da lista de bags que estão dentro da bag principal;
   \item obtenção do conteúdo de cada bag pertencente à lista para posterior concatenação;
-  \item transformação em bag. 
-\end{itemize}       
+  \item transformação em bag.
+\end{itemize}
 \begin{code}
-muB q = B ((concat . fmap(unB.p1) . unB) q) 
+muB q = B ((concat . fmap(unB.p1) . unB) q)
 \end{code}
-\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag  
+\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag
 \begin{code}
 singletonbag b = (B [(b,1)])
 \end{code}
 \par Para definir a função dist definiram-se 2 funções auxiliares:
 \begin{itemize}
   \item \verb totalBag  que devolve o número de berlindes do saco;
-  \item \verb prob  que dado o número de berlindes do saco e o saco devolve a distribuição 
+  \item \verb prob  que dado o número de berlindes do saco e o saco devolve a distribuição
   finalizada recorrendo ao fmap de listas.
-\end{itemize}  
+\end{itemize}
 \begin{code}
 totalBag :: Bag Marble -> Int
 totalBag = p2 . head . unB . consolidate . (fmap (!))
@@ -1557,9 +1557,9 @@ f n (x,y) = (x,(fromIntegral y/ fromIntegral n))
 prob :: Int -> Bag a -> Dist a
 prob n l = D (fmap (f n) (unB l))
 \end{code}
-\par Assim a função dist resume-se à invocação da função \verb prob 
+\par Assim a função dist resume-se à invocação da função \verb prob
 \begin{code}
-dist b = (prob (totalBag b) b)  
+dist b = (prob (totalBag b) b)
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
