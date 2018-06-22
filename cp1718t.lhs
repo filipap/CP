@@ -1460,7 +1460,8 @@ outlineQTree f = (outlineAux) . (fmap (not . f))
 |k = either (1) (succ . p2)|
 %
 \end{eqnarray*}
-\par Fica, assim, com a lei de \verb Fokkinga \verb (50)
+\par Fica, assim, com a lei de \verb Fokkinga \verb (50) 
+
 \begin{eqnarray*}
 \start
 %
@@ -1612,7 +1613,8 @@ contém as iterações de uma árvore de pitágoras cujo valor de lado decresce 
 A função auxiliar \verb generateFTree utiliza dois inteiros como argumentos, um não é alterado e guarda o número de iterações iniciais pretendidas e outro
 é sempre decrementado e guarda a iteração atual até chegar a zero. Esses dois argumentos são usados em conjunto na função para obter as vezes que é necessário
 aplicar a escala ao valor inicial de lado dependendo da iteração.\\
-A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n (n representa o inteiro que não é alterado) e \verb n.
+A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n (n representa o inteiro que não é alterado) e \verb n .
+
 \begin{code}
 
 generatePTree n = anaFTree (generateFTree n) n
