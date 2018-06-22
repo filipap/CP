@@ -1698,7 +1698,8 @@ Então, a definição de |muB| foi feita em 3 passos:
 \begin{code}
 muB q = B ((concat . fmap(unB.p1) . unB) q)
 \end{code}
-\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag
+\par A definição de singletonBag foi apenas a transformação de um tipo \verb a  para \verb Bag .
+
 \begin{code}
 singletonbag b = (B [(b,1)])
 \end{code}
@@ -1718,7 +1719,7 @@ f n (x,y) = (x,(fromIntegral y/ fromIntegral n))
 prob :: Int -> Bag a -> Dist a
 prob n l = D (fmap (f n) (unB l))
 \end{code}
-\par Assim a função dist resume-se à invocação da função \verb prob
+\par Assim a função dist resume-se à invocação da função \verb prob .
 \begin{code}
 dist b = (prob (totalBag b) b)
 \end{code}
