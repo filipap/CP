@@ -1704,7 +1704,7 @@ drawPTree = cataFTree(either (return . square) (drawAux))
 
 drawAux :: (Square, ([Picture], [Picture])) -> [Picture]
 drawAux (c,(a:[],b:[])) = [(square c),a,b]
-drawAux (c,(a,b)) = square c : (fmap (rt c) a) ++ (fmap (rt' c) b)
+drawAux (c,(a,b)) = cons(square c , conc ((fmap (rt c) a),(fmap (rt' c) b)))
 
 rt = (rotate 45 .) . aap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
 rt' = (rotate (-45) .) . aap (translate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
