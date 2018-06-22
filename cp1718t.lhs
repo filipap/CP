@@ -106,13 +106,13 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 62
+\textbf{Grupo} nr. & 062
 \\\hline
+a81403 & Pedro Ferreira
+\\
 a81451 & Alexandre Rodrigues
 \\
 a82145 & Filipa Parente
-\\
-a81403 & Pedro Ferreira
 \end{tabular}
 \end{center}
 
