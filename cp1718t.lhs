@@ -1022,7 +1022,7 @@ outras funções auxiliares que sejam necessárias.
 }
 \end{eqnarray*}
 
-\par definindo-se assim as seguintes funções
+\par definindo-se assim as seguintes funções:
 \begin{code}
 inBlockchain = either (Bc) (Bcs)
 outBlockchain (Bc b) = i1(b)
@@ -1082,11 +1082,11 @@ isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(e
 \par {\bf Anamorfismo de QTree:}
 \begin{eqnarray*}
 \xymatrix@@C=1cm{
-    |Matrix a|
+    |A|
            \ar[d]_-{|anaQTree f|}
            \ar[r]^-{|f|}
 &
-    |QTree a + (Matrix a >< (Matrix a ><(Matrix a >< Matrix a)))|
+    |QTree a + (A >< (A ><(A >< A)))|
            \ar[d]^{|id + (anaQTree f >< (anaQTree f >< (anaQTree f >< anaQTree f)))|}
 \\
     |QTree a|
@@ -1109,14 +1109,15 @@ isValidMagicNr = uncurry(==) . split (lenChain) (length . nub . cataBlockchain(e
     |QTree a + (QTree a >< (QTree a ><(QTree a >< QTree a)))|
            \ar[d]^{|id + (cataQTree g >< (cataQTree g >< (cataQTree g >< cataQTree g)))|}
 \\
-    |Matrix a|
+    |A|
 &
-    |QTree a + (Matrix a >< (Matrix a ><(Matrix a >< Matrix a)))|
+    |QTree a + (A >< (A ><(A >< A)))|
            \ar[l]^-{|g|}
 }
 \end{eqnarray*}
 
-\par definindo-se assim as seguintes funções
+\par onde A é um tipo genérico. \\
+\par Definiram-se assim as seguintes funções:
 \begin{code}
 data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a)
   deriving (Eq,Show)
@@ -1158,11 +1159,11 @@ instance Functor QTree where
 \end{code}
 
 \newpage
-\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\
+\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ \\
 \maketitle {\bf rotateQTree}
 \par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction .
 Também se definiu uma função (\verb rotateAux ) que dado o functor de QTree fazia apenas a rotação dos blocos mantendo intactas as células.\\
-Fica a faltar a troca dos tamanhos das células que é feito na função principal.
+Finalmente é feito o catamorfismo da árvore com os blocos já rodados fazendo, dentro de cada célula, o swap do inteiro correspondente ao número de linhas com o número de colunas e vice-versa.
 \begin{code}
 --funções auxiliares--
 myfunction:: (a,(a,(a,a))) -> (a,(a,(a,a)))
@@ -1171,9 +1172,8 @@ myfunction (x,(y,(z,w))) = (z,(x,(w,y)))
 rotateAux :: Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (a, (a, (a, a)))
 rotateAux =  id -|- myfunction
 
-
 --função principal--
-rotateQTree = inQTree.(baseQTreeScale swap rotateQTree).rotateAux.outQTree
+rotateQTree = cataQTree (inQTree . (baseQTreeScale swap id) . rotateAux)
 \end{code}
 \maketitle {\bf scaleQTree}
 \par
@@ -1189,15 +1189,14 @@ scaleQTree n = cataQTree (inQTree . baseQTreeScale (scaleAux n) id)
 \end{code}
 \maketitle {\bf invertQTree}
 \par
-\par Para a resolução desta questão apenas se fez o catamorfismo da função \verb changeColor a todas as células da àrvore
+\par Para a resolução desta questão apenas se fez o anamorfismo da função \verb changeColor  a todas as células da àrvore
 \begin{code}
 --função auxiliar--
 changeColor :: PixelRGBA8 -> PixelRGBA8
 changeColor (PixelRGBA8 x y z w) = PixelRGBA8 (255-x)(255-y)(255-z)(255-w)
 
-
 --função principal--
-invertQTree = cataQTree (inQTree . baseQTree (changeColor) id)
+invertQTree = anaQTree ((baseQTree (changeColor) id) . outQTree)
 \end{code}
 \maketitle {\bf compressQTree}
 \par
@@ -1228,30 +1227,27 @@ compressQTree n q = compressQTreeAux ((depthQTree q) - n) q
 \par Esta questão necessitou de dois passos para ser resolvida:
 \begin{itemize}
    \item aplicação da negação da função f a todas as células da àrvore
-   \item definição da função \verb outlineAux  que faz o catamorfismo de uma função f
-   que dada uma célula do tipo Bool, caso ela fosse False, preenchia-se as bordas com
-   True, caso contrário preenchia-se matriz a False, e uma função g que junta as submatrizes formadas.
+   \item catamorfismo de uma função g que dada uma célula do tipo Bool, caso ela fosse False, preenchia-se as bordas com
+   True, caso contrário preenchia-se matriz a False, e uma função h que junta as submatrizes formadas.
 \end{itemize}
 
 \begin{code}
 --funções auxiliares--
 pintaCell :: a -> Int -> Int -> Matrix a -> Matrix a
-pintaCell n r c = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r)
-                                                .(mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
+pintaCell n r c = mapLinhas . mapColunas 
+            where 
+              mapLinhas = (mapRow(\_ x -> n) 1).(mapRow(\_ x -> n) r)
+              mapColunas = (mapCol(\_ x -> n) 1).(mapCol(\_ x -> n) c)
 
 inQTreeAdapted :: (Bool,(Int,Int)) -> Matrix Bool
 inQTreeAdapted (a,(b,c)) = if (a) then (qt2bm . fmap(not) . inQTreeCell) (a,(b,c))
                                   else ((pintaCell True b c) . qt2bm . inQTreeCell) (a,(b,c))
 
-outlineAux :: QTree Bool -> Matrix Bool
-outlineAux = (cataQTree(either f g))
-                  where
-                   f (x,(y,z))= inQTreeAdapted (x,(y,z))
-                   g (a,(b,(c,d))) = joinBlocks(a,b,c,d)
-
-
 --função principal--
-outlineQTree f = (outlineAux) . (fmap (not . f))
+outlineQTree f = (cataQTree(either g h)) . (fmap (not . f))
+                  where
+                   g (x,(y,z))= inQTreeAdapted (x,(y,z))
+                   h (a,(b,(c,d))) = joinBlocks(a,b,c,d) 
 
 \end{code}
 
@@ -1642,7 +1638,8 @@ flatTotalRev (a,b,c,d) = ((a,b),(c,d))
 }
 \end{eqnarray*}
 
-\par definindo-se assim as seguintes funções
+\par onde A é um tipo genérico. \\
+\par Definiram-se assim as seguintes funções:
 \begin{code}
 
 inFTreeUnit :: b -> FTree a b
@@ -1678,7 +1675,7 @@ contém as iterações de uma árvore de pitágoras cujo valor de lado decresce 
 A função auxiliar \verb generateFTree utiliza dois inteiros como argumentos, um não é alterado e guarda o número de iterações iniciais pretendidas e outro
 é sempre decrementado e guarda a iteração atual até chegar a zero. Esses dois argumentos são usados em conjunto na função para obter as vezes que é necessário
 aplicar a escala ao valor inicial de lado dependendo da iteração.\\
-A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree \verb n \\(n representa o inteiro que não é alterado) e \verb n .
+A função \verb generatePTree é obtida através do anamorfismo da FTree com argumentos \verb generateFTree  \verb n  (n representa o inteiro que não é alterado) e \verb n .
 
 \begin{code}
 
