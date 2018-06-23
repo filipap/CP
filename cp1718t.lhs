@@ -1695,13 +1695,11 @@ generateFTree nInicial n = if (n==0) then i1 (100*(sqrt(2)/2)^(nInicial))
 \par Efetua \verb fmap  \verb rt  rodando todos os elementos subconsequentes de [Picture]. A função \verb rt  roda e translada uma Picture, juntamente com \verb rt' que faz o mesmo salvo dois sinais negativos.
 \begin{code}
 wind :: Int -> IO ()
-wind = display window white . pictures . drawPTree . generatePTree . succ
-
+wind = display window white . pictures . drawPTree . generatePTree
 
 drawPTree = cataFTree(either (return . square) (drawAux))
 
 drawAux :: (Square, ([Picture], [Picture])) -> [Picture]
-drawAux (c,(a:[],b:[])) = [(square c),a,b]
 drawAux (c,(a,b)) = cons(square c , conc ((fmap (rt c) a),(fmap (rt' c) b)))
 
 rt = (rotate 45 .) . aap (translate . negate . ((1 / 2) *) . sqrt . (/ 2) . (^ 2)) (((3 / 2) *) . sqrt . (/ 2) . (^ 2))
