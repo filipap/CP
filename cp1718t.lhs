@@ -1158,7 +1158,7 @@ instance Functor QTree where
 \end{code}
 
 \newpage
-\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\ 
+\par A resolução das alíneas foi feita com base nos diagramas anteriormente apresentados.\\
 
 \maketitle {\bf rotateQTree}
 \par Para a resolução desta questão definiu-se uma função que fazia a rotação dos blocos \verb myfunction.
@@ -1694,7 +1694,7 @@ generateFTree nInicial n = if (n==0) then i1 (100*(sqrt(2)/2)^(nInicial))
 \par Efetua \verb fmap  \verb rt  rodando todos os elementos subconsequentes de [Picture]. A função \verb rt  roda e translada uma Picture, juntamente com \verb rt' que faz o mesmo salvo dois sinais negativos.
 \begin{code}
 wind :: Int -> IO ()
-wind = display window white . pictures . drawPTree . generatePTree
+wind = display window white . pictures . drawPTree . generatePTree . succ
 
 
 drawPTree = cataFTree(either (return . square) (drawAux))
